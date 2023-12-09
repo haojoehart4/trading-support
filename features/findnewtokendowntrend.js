@@ -5,15 +5,14 @@ const { refetchGetVol } = require("../utils/helper");
 const handleFilterCondition = async (
   filterParam,
   usdtPairString,
-  intervalTime
+  intervalTime,
+  volume
 ) => {
   const result = await axios.get(
     `https://api.binance.com/api/v3/ticker?windowSize=${intervalTime}&symbols=${usdtPairString}`
   );
-  const highPercentChange = 
-  filterParam < 0
-  ? await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam)
-  : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
+  let highPercentChange = !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 50000000)
+  // : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   const arr = highPercentChange
     // ?.filter((x) => parseFloat(x?.lastPrice) > 0.5)
     ?.map((x) => {
@@ -25,7 +24,7 @@ const handleFilterCondition = async (
   return arr; 
 };
 
-const handleLoop = async (childArray, filterParam, intervalTime) => {
+const handleLoop = async (childArray, filterParam, intervalTime, volume = false) => {
   let usdtPairsString = "";
   let tokenPairsPriceChange = [];
   for (let i = 0; i < childArray.length; i++) {
@@ -35,7 +34,8 @@ const handleLoop = async (childArray, filterParam, intervalTime) => {
     const result = await handleFilterCondition(
       filterParam,
       usdtPairsString,
-      intervalTime
+      intervalTime,
+      volume
     );
     tokenPairsPriceChange = [...tokenPairsPriceChange, ...result];
 
@@ -94,10 +94,10 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
       tokenPairsPriceChange = loopResult16Hrs.token_pairs_price_change;
 
       // // filter 3h hours
-      // childArray = await handleSeperateSymbols(tokenPairsPriceChange);
-      // const loopResult1d = await handleLoop(childArray, 0.5, "6h");
-      // usdtPairsString = loopResult1d.usdt_pair_string;
-      // tokenPairsPriceChange = loopResult1d.token_pairs_price_change;
+      childArray = await handleSeperateSymbols(tokenPairsPriceChange);
+      const loopResult1d = await handleLoop(childArray, 0.5, "6h", true);
+      usdtPairsString = loopResult1d.usdt_pair_string;
+      tokenPairsPriceChange = loopResult1d.token_pairs_price_change;
 
       // //filter 8h hours
       // childArray = await handleSeperateSymbols(tokenPairsPriceChange);
