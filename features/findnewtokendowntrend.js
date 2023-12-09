@@ -12,7 +12,7 @@ const handleFilterCondition = async (
   );
   const highPercentChange = await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < 0 && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume > 10000000))
   const arr = highPercentChange
-    ?.filter((x) => parseFloat(x?.lastPrice) > 0.5)
+    // ?.filter((x) => parseFloat(x?.lastPrice) > 0.5)
     ?.map((x) => {
       return {
         symbol: x.symbol,
