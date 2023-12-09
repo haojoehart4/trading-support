@@ -14,16 +14,18 @@ const handleFilterCondition = async (
 
   await sleep(1000)
 
-  let highPercentChange =
   
-  !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : 
+  // !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : 
   
-  await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 6000000)?.sort((a,b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume))?.slice(-3)
+  let highPercentChange = !volume 
+  ? await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x.priceChangePercent) < 0  &&parseFloat(x?.quoteVolume) > 100000)?.sort((a,b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume))
+  : await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 5000000)?.sort((a,b) => parseFloat(a?.priceChangePercent) - parseFloat(b?.priceChangePercent))?.slice(-4)
   // : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   const arr = highPercentChange
     ?.filter((x) => parseFloat(x?.lastPrice) > 0.1)
     ?.map((x) => {
       return {
+        ...x,
         symbol: x.symbol,
         price_percent_change: x?.priceChangePercent,
       };
@@ -96,13 +98,13 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
 
       // filter 3d hours
       childArray = await handleSeperateSymbols(res?.data, true);
-      const loopResult16Hrs = await handleLoop(childArray, -3, "7d");
+      const loopResult16Hrs = await handleLoop(childArray, -3, "1d");
       usdtPairsString = loopResult16Hrs.usdt_pair_string;
       tokenPairsPriceChange = loopResult16Hrs.token_pairs_price_change;
 
       // // filter 3h hours
       childArray = await handleSeperateSymbols(tokenPairsPriceChange);
-      const loopResult1d = await handleLoop(childArray, 0.5, "6h", true);
+      const loopResult1d = await handleLoop(childArray, 0.5, "3h", true);
       usdtPairsString = loopResult1d.usdt_pair_string;
       tokenPairsPriceChange = loopResult1d.token_pairs_price_change;
 
