@@ -15,8 +15,8 @@ const handleFilterCondition = async (
   // !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : 
   
   let highPercentChange = !volume 
-  ? await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x.priceChangePercent) < 0  &&parseFloat(x?.quoteVolume) > 100000)?.sort((a,b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume))
-  : await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 5000000)?.sort((a,b) => parseFloat(a?.priceChangePercent) - parseFloat(b?.priceChangePercent))?.slice(-3)
+  ? await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x.priceChangePercent) < 0  && parseFloat(x?.quoteVolume) > 1000000)?.sort((a,b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume))
+  : await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 1000000 && parseFloat(x?.priceChange) > 0)?.sort((a,b) => parseFloat(a?.priceChangePercent) - parseFloat(b?.priceChangePercent))?.slice(-3)
   // : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   const arr = highPercentChange
     ?.filter((x) => parseFloat(x?.lastPrice) > 0.1)
