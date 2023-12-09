@@ -56,7 +56,7 @@ const timeConvert = (time) => {
 
 let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
-const refetchGetVol = async (coupleFilters, timeToSleep = 1500) => {
+const refetchGetVol = async (coupleFilters, timeToSleep = 3000) => {
     let isComplete = false;
     let sellVol = coupleFilters.sellVol;
     let buyVol = coupleFilters.buyVol;
