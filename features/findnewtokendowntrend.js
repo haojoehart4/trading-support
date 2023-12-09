@@ -9,7 +9,7 @@ const handleFilterCondition = async (
   const result = await axios.get(
     `https://api.binance.com/api/v3/ticker?windowSize=${intervalTime}&symbols=${usdtPairString}`
   );
-  let highPercentChange =  await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
+  let highPercentChange =  await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 15000000)
   // : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   const arr = highPercentChange
     ?.filter((x) => parseFloat(x?.lastPrice) > 0.5)
@@ -23,7 +23,7 @@ const handleFilterCondition = async (
   return arr; 
 };
 
-const handleLoop = async (childArray, filterParam, intervalTime, volume = false) => {
+const handleLoop = async (childArray, intervalTime) => {
   let usdtPairsString = "";
   let tokenPairsPriceChange = [];
   for (let i = 0; i < childArray.length; i++) {
@@ -31,10 +31,8 @@ const handleLoop = async (childArray, filterParam, intervalTime, volume = false)
     usdtPairsString = `%5B${childArray[i]?.join(",")}%5D`;
     //filter 2 hours
     const result = await handleFilterCondition(
-      filterParam,
       usdtPairsString,
       intervalTime,
-      volume
     );
     tokenPairsPriceChange = [...tokenPairsPriceChange, ...result];
 
