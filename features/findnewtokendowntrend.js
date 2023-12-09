@@ -3,18 +3,16 @@ const _ = require("lodash");
 const { refetchGetVol } = require("../utils/helper");
 
 const handleFilterCondition = async (
-  filterParam,
   usdtPairString,
   intervalTime,
-  volume
 ) => {
   const result = await axios.get(
     `https://api.binance.com/api/v3/ticker?windowSize=${intervalTime}&symbols=${usdtPairString}`
   );
-  let highPercentChange = !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 3000000)
+  let highPercentChange =  await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   // : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   const arr = highPercentChange
-    // ?.filter((x) => parseFloat(x?.lastPrice) > 0.5)
+    ?.filter((x) => parseFloat(x?.lastPrice) > 0.5)
     ?.map((x) => {
       return {
         ...x,
@@ -89,14 +87,14 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
       // tokenPairsPriceChange = loopResult7d.token_pairs_price_change;
 
       // filter 3d hours
-      childArray = await handleSeperateSymbols(res?.data, true);
-      const loopResult16Hrs = await handleLoop(childArray, -3, "5d");
-      usdtPairsString = loopResult16Hrs.usdt_pair_string;
-      tokenPairsPriceChange = loopResult16Hrs.token_pairs_price_change;
+      // childArray = await handleSeperateSymbols(res?.data, true);
+      // const loopResult16Hrs = await handleLoop(childArray, -3, "5d");
+      // usdtPairsString = loopResult16Hrs.usdt_pair_string;
+      // tokenPairsPriceChange = loopResult16Hrs.token_pairs_price_change;
       // console.log(tokenPairsPriceChange)
       // // filter 3h hours
-      childArray = await handleSeperateSymbols(tokenPairsPriceChange);
-      const loopResult1d = await handleLoop(childArray, 0.5, "6h", true);
+      childArray = await handleSeperateSymbols(res?.data, true);
+      const loopResult1d = await handleLoop(childArray, "6h");
       usdtPairsString = loopResult1d.usdt_pair_string;
       tokenPairsPriceChange = loopResult1d.token_pairs_price_change;
 
