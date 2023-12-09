@@ -11,9 +11,6 @@ const handleFilterCondition = async (
   const result = await axios.get(
     `https://api.binance.com/api/v3/ticker?windowSize=${intervalTime}&symbols=${usdtPairString}`
   );
-
-  await sleep(1000)
-
   
   // !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : 
   
@@ -25,7 +22,7 @@ const handleFilterCondition = async (
     ?.filter((x) => parseFloat(x?.lastPrice) > 0.1)
     ?.map((x) => {
       return {
-        ...x,
+        // ...x,
         symbol: x.symbol,
         price_percent_change: x?.priceChangePercent,
       };
