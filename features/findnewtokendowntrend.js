@@ -1,6 +1,6 @@
 const axios = require("axios");
 const _ = require("lodash");
-const { refetchGetVol } = require("../utils/helper");
+const { refetchGetVol, sleep } = require("../utils/helper");
 
 const handleFilterCondition = async (
   filterParam,
@@ -11,7 +11,14 @@ const handleFilterCondition = async (
   const result = await axios.get(
     `https://api.binance.com/api/v3/ticker?windowSize=${intervalTime}&symbols=${usdtPairString}`
   );
-  let highPercentChange = !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 1000000)
+
+  await sleep(1000)
+
+  let highPercentChange =
+  
+  !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : 
+  
+  await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 6000000)?.sort((a,b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume))?.slice(-3)
   // : await result?.data?.filter((x) => parseFloat(x.priceChangePercent) > filterParam && parseFloat(x?.lastPrice) < 10 && parseFloat(x?.quoteVolume) > 10000000)
   const arr = highPercentChange
     ?.filter((x) => parseFloat(x?.lastPrice) > 0.1)
@@ -89,10 +96,10 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
 
       // filter 3d hours
       childArray = await handleSeperateSymbols(res?.data, true);
-      const loopResult16Hrs = await handleLoop(childArray, -3, "5d");
+      const loopResult16Hrs = await handleLoop(childArray, -3, "7d");
       usdtPairsString = loopResult16Hrs.usdt_pair_string;
       tokenPairsPriceChange = loopResult16Hrs.token_pairs_price_change;
-      
+
       // // filter 3h hours
       childArray = await handleSeperateSymbols(tokenPairsPriceChange);
       const loopResult1d = await handleLoop(childArray, 0.5, "6h", true);

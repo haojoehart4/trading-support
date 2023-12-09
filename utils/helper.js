@@ -54,9 +54,9 @@ const timeConvert = (time) => {
     })
 }
 
-let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
-const refetchGetVol = async (coupleFilters, timeToSleep = 3000) => {
+const refetchGetVol = async (coupleFilters, timeToSleep = 1000) => {
     let isComplete = false;
     let sellVol = coupleFilters.sellVol;
     let buyVol = coupleFilters.buyVol;
@@ -94,4 +94,4 @@ const refetchGetVol = async (coupleFilters, timeToSleep = 3000) => {
     });
   };
 
-module.exports = {timeConvert, refetchGetVol}
+module.exports = {timeConvert, refetchGetVol, sleep}
