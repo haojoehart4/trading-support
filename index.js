@@ -157,7 +157,6 @@ bot.onText(/\/start/, (msg) => {
 bot.onText(/\/stop/, async (msg) => {
   tokenPairs = "BTCUSDT";
   await bot.sendMessage(msg.chat.id, "Stop bot successfully");
-  resetDefault();
   if (bot.isPolling()) {
     await bot.stopPolling({ cancel: true });
   }
