@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const {WebSocket} = require('ws')
+// const {WebSocket} = require('ws')
 const cors = require("cors");
 const Binance = require("node-binance-api");
 const cookieParser = require("cookie-parser");
