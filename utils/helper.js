@@ -61,6 +61,7 @@ const refetchGetVol = async (coupleFilters, timeToSleep = 11000) => {
     let sellVol = coupleFilters.sellVol;
     let buyVol = coupleFilters.buyVol;
     let timeout;
+    await sleep(timeToSleep)
     const result = await axios.get(
       `https://api.binance.com/api/v3/aggTrades?symbol=${coupleFilters.symbol}&limit=1000&startTime=${coupleFilters?.startTime}&endTime=${coupleFilters?.endTime}`
     );
@@ -70,7 +71,6 @@ const refetchGetVol = async (coupleFilters, timeToSleep = 11000) => {
         ? true
         : false;
   
-    await sleep(timeToSleep)
 
     await result?.data?.map((x) => {
       if (x?.m) {
