@@ -119,28 +119,14 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
         let buyVol3Hr = 0;
         let sellVol3Hr = 0;
         const coupleFilterLatest = {
-          startTime: new Date().getTime() - 2 * 60 * 60 * 1000,
+          startTime: new Date().getTime() - 3 * 60 * 60 * 1000,
           endTime: new Date().getTime(),
         };
 
         const coupleFilter6HrsAgo = {
-          startTime: new Date().getTime() - 4 * 60 * 60 * 1000,
-          endTime: new Date().getTime() - 2 * 60 * 60 * 1000,
-        };
-
-        const coupleFilter9HrsAgo = {
           startTime: new Date().getTime() - 6 * 60 * 60 * 1000,
-          endTime: new Date().getTime() - 4 * 60 * 60 * 1000,
+          endTime: new Date().getTime() - 3 * 60 * 60 * 1000,
         };
-
-        //9hrs
-        const result9HrsAgo = await refetchGetVol({
-          ...coupleFilter9HrsAgo,
-          symbol: i.symbol,
-          buyVol: buyVol9Hrs,
-          sellVol: sellVol9Hrs,
-        });
-        const past9HrsRlt = {rate: result9HrsAgo.buyVol / result9HrsAgo.sellVol, isBuySession: result9HrsAgo.buyVol - result9HrsAgo.sellVol > 0 ? true : false};
 
         //6hrs
         const result6Hrs = await refetchGetVol({
@@ -160,9 +146,10 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
         });
         const past3HrsRlt = {rate: result3Hrs.buyVol / result3Hrs.sellVol, isBuySession: result3Hrs.buyVol - result3Hrs.sellVol > 0 ? true : false};
 
-        if ((!past9HrsRlt?.isBuySession && past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession) || 
+        if (
         (!past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession && (past3HrsRlt.rate > past6HrsRlt.rate * 1.2))||
-        (past9HrsRlt?.isBuySession && past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession && (past3HrsRlt.rate > past6HrsRlt.rate))) {
+        (past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession)
+        ) {
           responseResultUp.push(
             `${i.symbol}: sold volume in 9h: (${result9HrsAgo.sellVol}), bought volume in 9h: (${result9HrsAgo.buyVol}), sold volume in 6h: (${result6Hrs.sellVol}), bought volume in 6h: (${result6Hrs.buyVol}), 
             sold volume in 3h: (${result3Hrs.sellVol}), bought volume in 3h: (${result3Hrs.buyVol}), percent_change: ${i.price_percent_change} \n`
