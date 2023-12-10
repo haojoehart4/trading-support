@@ -119,18 +119,18 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
         let buyVol3Hr = 0;
         let sellVol3Hr = 0;
         const coupleFilterLatest = {
-          startTime: new Date().getTime() - 3 * 60 * 60 * 1000,
+          startTime: new Date().getTime() - 2 * 60 * 60 * 1000,
           endTime: new Date().getTime(),
         };
 
         const coupleFilter6HrsAgo = {
-          startTime: new Date().getTime() - 6 * 60 * 60 * 1000,
-          endTime: new Date().getTime() - 3 * 60 * 60 * 1000,
+          startTime: new Date().getTime() - 4 * 60 * 60 * 1000,
+          endTime: new Date().getTime() - 2 * 60 * 60 * 1000,
         };
 
         const coupleFilter9HrsAgo = {
-          startTime: new Date().getTime() - 9 * 60 * 60 * 1000,
-          endTime: new Date().getTime() - 6 * 60 * 60 * 1000,
+          startTime: new Date().getTime() - 6 * 60 * 60 * 1000,
+          endTime: new Date().getTime() - 4 * 60 * 60 * 1000,
         };
 
         //9hrs
