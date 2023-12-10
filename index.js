@@ -1,11 +1,13 @@
 const express = require("express");
 const app = express();
-// const ws = require('ws')
+const {WebSocket} = require('ws')
 const cors = require("cors");
 const Binance = require("node-binance-api");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const axios = require("axios");
+const { Server } = require("socket.io");
+
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
@@ -32,7 +34,7 @@ const binance = new Binance().options({
   APISECRET: process.env.BINANCE_API_SECRET_KEY,
   useServerTime: true,
   reconnect: true,
-  family: 4,
+  // family: 4,
 });
 
 // binance.futuresPrices()
@@ -99,6 +101,17 @@ const binance = new Binance().options({
 //   return response.data;
 // };
 // getKLines('LQTYUSDT', '1h', new Date('11/17/2023 03:00:00').getTime(),  new Date('11/17/2023 07:00:00').getTime())
+
+// const ws = new WebSocket(`wss://stream.binance.com:9443/ws/lqtyusdt@kline_4h`)
+// ws.on('connection', (connect) => {
+//   console.log('connection success')
+// })
+// ws.on('message', (data) => {
+//   if (data) {
+//       const trade = JSON.parse(data); // parsing a single-trade record
+//       console.log('trades__', trade);
+//   }
+// });
 
 // ---------------------------------TELEGRAM-BOT------------------------------------//
 const token = process.env.TELEGRAM_HAPPIER_TRADING_BOT;
