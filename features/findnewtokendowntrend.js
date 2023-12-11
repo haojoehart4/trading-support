@@ -11,12 +11,32 @@ const handleFilterCondition = async (
   const result = await axios.get(
     `https://api.binance.com/api/v3/ticker?windowSize=${intervalTime}&symbols=${usdtPairString}`
   );
-  
-  // !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) : 
-  
-  let highPercentChange = !volume 
-  ? await result?.data?.filter((x) => parseFloat(x?.lastPrice) < 10 && parseFloat(x.priceChangePercent) < 0)?.sort((a,b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume)).slice(-2)
-  : await result?.data?.filter((x) => parseFloat(x?.quoteVolume) > 1000000 && parseFloat(x?.priceChange) > 0)?.sort((a,b) => parseFloat(a?.priceChangePercent) - parseFloat(b?.priceChangePercent) && parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume))?.slice(-3)
+
+  // !volume ?  await result?.data?.filter((x) => parseFloat(x.priceChangePercent) < filterParam) :
+
+  let highPercentChange = !volume
+    ? await result?.data
+        ?.filter(
+          (x) =>
+            parseFloat(x?.lastPrice) < 10 &&
+            parseFloat(x.priceChangePercent) < 0
+        )
+        ?.sort(
+          (a, b) => parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume)
+        )
+    : await result?.data
+        ?.filter(
+          (x) =>
+            parseFloat(x?.quoteVolume) > 1000000 &&
+            parseFloat(x?.priceChange) > 0
+        )
+        ?.sort(
+          (a, b) =>
+            parseFloat(a?.priceChangePercent) -
+              parseFloat(b?.priceChangePercent) &&
+            parseFloat(a?.quoteVolume) - parseFloat(b?.quoteVolume)
+        )
+        ?.slice(-5);
 
   const arr = highPercentChange
     ?.filter((x) => parseFloat(x?.lastPrice) > 0.1)
@@ -27,10 +47,15 @@ const handleFilterCondition = async (
         price_percent_change: x?.priceChangePercent,
       };
     });
-  return arr; 
+  return arr;
 };
 
-const handleLoop = async (childArray, filterParam, intervalTime, volume = false) => {
+const handleLoop = async (
+  childArray,
+  filterParam,
+  intervalTime,
+  volume = false
+) => {
   let usdtPairsString = "";
   let tokenPairsPriceChange = [];
   for (let i = 0; i < childArray.length; i++) {
@@ -129,43 +154,32 @@ const findnewtokendowntrend = (telegramBot, chat_id) => {
         };
 
         //6hrs
-        const result6Hrs = await refetchGetVol({
-          ...coupleFilter6HrsAgo,
-          symbol: i.symbol,
-          buyVol: buyVol6Hr,
-          sellVol: buyVol6Hr,
-        });
-        const past6HrsRlt = {rate: result6Hrs.buyVol / result6Hrs.sellVol, isBuySession: result6Hrs.buyVol - result6Hrs.sellVol > 0 ? true : false};
+        const result6Hrs = await refetchGetVol(coupleFilter6HrsAgo);
+
+        const past6HrsRlt = {
+          isBuySession:
+            result6Hrs.closePrice - result6Hrs.openPrice > 0 ? true : false,
+          ...result6Hrs,
+        };
 
         //3hrs
-        const result3Hrs = await refetchGetVol({
-          ...coupleFilterLatest,
-          symbol: i.symbol,
-          buyVol: buyVol3Hr,
-          sellVol: sellVol3Hr,
-        });
-        const past3HrsRlt = {rate: result3Hrs.buyVol / result3Hrs.sellVol, isBuySession: result3Hrs.buyVol - result3Hrs.sellVol > 0 ? true : false};
+        const result3Hrs = await refetchGetVol(coupleFilterLatest);
 
+        const past3HrsRlt = {
+          isBuySession:
+            result3Hrs.closePrice - result3Hrs.openPrice > 0 ? true : false,
+          ...result3Hrs,
+        };
+        // const past3HrsRlt = {rate: result3Hrs.buyVol / result3Hrs.sellVol, isBuySession: result3Hrs.buyVol - result3Hrs.sellVol > 0 ? true : false};
         if (
-        (!past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession && (past3HrsRlt.rate > past6HrsRlt.rate * 1.2))||
-        (past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession)
+          (!past6HrsRlt?.isBuySession &&
+            past3HrsRlt?.isBuySession &&
+            past3HrsRlt?.totalVolume / past6HrsRlt?.totalVolume > 1.5) ||
+          (past6HrsRlt?.isBuySession && past3HrsRlt?.isBuySession)
         ) {
-          responseResultUp.push(
-            `${i.symbol}: sold volume in 9h: (${result9HrsAgo.sellVol}), bought volume in 9h: (${result9HrsAgo.buyVol}), sold volume in 6h: (${result6Hrs.sellVol}), bought volume in 6h: (${result6Hrs.buyVol}), 
-            sold volume in 3h: (${result3Hrs.sellVol}), bought volume in 3h: (${result3Hrs.buyVol}), percent_change: ${i.price_percent_change} \n`
-          );
+          responseResultUp.push(`${i.symbol}: 6h - Giá mở cửa: ${past6HrsRlt.openPrice}, Giá đóng cửa: ${past6HrsRlt.closePrice}, KL: ${past6HrsRlt?.totalVolume}, 
+          --- 3h - Giá mở cửa: ${past3HrsRlt.openPrice}, Giá đóng cửa: ${past3HrsRlt.closePrice}, KL: ${past3HrsRlt?.totalVolume} \n`)
         }
-
-
-          // if (
-          //   past1HrRate > past2HrsRate &&
-          //   result.buyVol + result.sellVol >
-          //     result2HrsAgo.buyVol + result2HrsAgo.sellVol
-          // ) {
-          //   responseResultUp.push(
-          //     `${i.symbol}: sold volume in 2h: (${result2HrsAgo.sellVol}), bought volume in 2h: (${result2HrsAgo.buyVol}), sold volume in 1h: (${result.sellVol}), bought volume in 1h: (${result.buyVol}), percent_change: ${i.price_percent_change} \n`
-          //   );
-          // }
       }
 
       const responseResultString1 =

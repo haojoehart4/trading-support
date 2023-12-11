@@ -57,41 +57,18 @@ const timeConvert = (time) => {
 const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 const refetchGetVol = async (coupleFilters, timeToSleep = 11000) => {
-    let isComplete = false;
-    let sellVol = coupleFilters.sellVol;
-    let buyVol = coupleFilters.buyVol;
-    let timeout;
-    await sleep(timeToSleep)
     const result = await axios.get(
-      `https://api.binance.com/api/v3/aggTrades?symbol=${coupleFilters.symbol}&limit=1000&startTime=${coupleFilters?.startTime}&endTime=${coupleFilters?.endTime}`
+      `https://api.binance.com/api/v3/klines?symbol=${coupleFilters.symbol}&limit=1000&startTime=${coupleFilters?.startTime}&endTime=${coupleFilters?.endTime}&interval=5m`
     );
-    isComplete =
-      (await result?.data?.filter((x) => x.T < coupleFilters?.endTime)?.length) <
-      1000
-        ? true
-        : false;
-  
+    let totalVolume = 0
+    const openPrice = parseFloat(result?.data[0][1])
+    const closePrice = parseFloat(result?.data[result?.data.length - 1][4])
 
     await result?.data?.map((x) => {
-      if (x?.m) {
-        sellVol += parseFloat(x?.q);
-      } else {
-        buyVol += parseFloat(x?.q);
-      }
-    });
-  
-    if (isComplete) {
-      return { isComplete: isComplete, sellVol: sellVol, buyVol: buyVol };
-    }
-  
-  
-    return refetchGetVol({
-      startTime: result?.data.at(-1)?.T,
-      endTime: coupleFilters?.endTime,
-      symbol: coupleFilters?.symbol,
-      buyVol: buyVol,
-      sellVol: sellVol,
-    });
+        totalVolume += parseFloat(x[5])
+      });
+
+    return {openPrice: openPrice, closePrice: closePrice, totalVolume: totalVolume}
   };
 
 module.exports = {timeConvert, refetchGetVol, sleep}
