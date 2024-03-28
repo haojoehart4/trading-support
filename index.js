@@ -383,7 +383,7 @@ const handleTrading = async (close_price) => {
         objTrading.isCompleteInterval = true;
         bot.sendMessage(
           chat_id,
-          `% THAY ĐỔI: ${percentChange}%, session_downtrend_count: ${sessionDownTrend}, GIÁ MỞ CỬA: ${rlt8Hrs.openPrice}, GIÁ ĐÓNG CỬA: ${rltLatest.closePrice}`
+          `Downtrend - % THAY ĐỔI: ${percentChange}%, session_downtrend_count: ${sessionDownTrend}, GIÁ MỞ CỬA: ${rlt8Hrs.openPrice}, GIÁ ĐÓNG CỬA: ${rltLatest.closePrice}`
         );
       } else {
         // IN CASE PERCENTCHANGE >= 3
@@ -479,6 +479,10 @@ const handleTrading = async (close_price) => {
               });
           }
         }
+        bot.sendMessage(
+          chat_id,
+          `Uptrend - % THAY ĐỔI: ${percentChange}%, session_downtrend_count: ${sessionDownTrend}, GIÁ MỞ CỬA: ${rlt8Hrs.openPrice}, GIÁ ĐÓNG CỬA: ${rltLatest.closePrice}`
+        );
       }
     }
 
@@ -556,7 +560,7 @@ const handleTrading = async (close_price) => {
 
     //----------------------- KHI GIÁ MỚI NHẤT <= PRICESTONE => BÁN HẾT + NGHỈ CHƠI---------------------------//
     if (latestPrice <= priceStone1 || (mileStone === 3 && latestPrice <= secondBuy.priceSold) || (percentChangeDefault >= 7 && mileStone === 1)) {
-      const totalQty = Math.round((quantityBuy + secondBuy.quantity) * 0.2);
+      const totalQty = Math.round((quantityBuy + secondBuy.quantity) - (quantityBuy + secondBuy.quantity) * 0.2)
       await binance
         .marketSell(tokenPairs.toUpperCase(), totalQty)
         .then(async(res1) => {
