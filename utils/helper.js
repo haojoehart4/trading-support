@@ -55,7 +55,7 @@ const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 const refetchGetVol = async (coupleFilters) => {
   const result = await axios.get(
-    `https://api.binance.com/api/v3/klines?symbol=${coupleFilters.symbol}&limit=1&startTime=${coupleFilters?.startTime}&endTime=${coupleFilters?.endTime}&interval=5m`
+    `https://api.binance.com/api/v3/klines?symbol=${coupleFilters.symbol}&limit=250&startTime=${coupleFilters?.startTime}&endTime=${coupleFilters?.endTime}&interval=1m`
   );
   let totalVolume = 0;
   let closePrice = 0;
