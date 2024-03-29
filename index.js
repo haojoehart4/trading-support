@@ -633,11 +633,6 @@ const handleTrading = async (close_price) => {
 };
 
 const server = require("http").createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:80",
-  },
-});
 
 // io.on((socket, next) => {
 
