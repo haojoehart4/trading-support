@@ -549,7 +549,7 @@ const handleTrading = async (close_price) => {
     if (
       latestPrice <= priceStone1 ||
       (mileStone === 3 && latestPrice <= secondBuy.priceSold) ||
-      (percentChangeDefault >= 7 && mileStone === 1)
+      (percentChangeDefault >= 7.2 && mileStone === 1)
     ) {
       const totalQty = Math.round(
         quantityBuy +
