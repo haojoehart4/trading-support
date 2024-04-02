@@ -289,8 +289,8 @@ bot.on("message", (msg) => {
 
   if (msg.text.toString().toLowerCase().indexOf("sold second") !== -1) {
     try {
-      const totalQty = Math.round(secondBuy.quantity * 0.2);
-      quantityBuy += secondBuy.quantity - totalQty;
+      const totalQty = Math.round(secondBuy.quantity - secondBuy.quantity * 0.2);
+      quantityBuy = secondBuy.quantity - totalQty;
       binance
         .marketSell(tokenPairs.toUpperCase(), totalQty)
         .then((res) => {
