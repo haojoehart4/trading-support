@@ -169,7 +169,8 @@ bot.onText(/\/start/, (msg) => {
 bot.onText(/\/stop/, async (msg) => {
   tokenPairs = "BTCUSDT";
   await bot.sendMessage(msg.chat.id, "Stop bot successfully");
-  resetDefault();
+  await resetDefault();
+  await closeInterval()
   if (bot.isPolling()) {
     await bot.stopPolling({ cancel: true });
   }
@@ -248,7 +249,7 @@ bot.on("message", (msg) => {
             boughtPrice = parseFloat(boughtPriceFloat);
             priceStoneUpdated = parseFloat(boughtPriceFloat);
             priceStone1 =
-              parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
+              parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.12;
             // priceStoneHalf =
             //   parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
             bot.sendMessage(
@@ -492,7 +493,7 @@ const handleTrading = async (close_price) => {
      if (mileStone === 1) {
       //-----KHI ĐANG Ở MILESTONE = 1, GIÁ THỤT 1 NỬA SO VỚI LÚC MUA VÀ SECONDBUY.QUANTITY = 0-----//
       if (
-        latestPrice <= boughtPrice - boughtPrice * 0.075 &&
+        latestPrice <= boughtPrice - boughtPrice * 0.06 &&
         secondBuy.quantity === 0
       ) {
         //mua tiep 25% khi dang lỗ 7% ở bước 1
@@ -504,7 +505,7 @@ const handleTrading = async (close_price) => {
             secondBuy = {
               priceSold:
                 parseFloat(res?.fills[0]?.price) -
-                parseFloat(res?.fills[0]?.price) * 0.075,
+                parseFloat(res?.fills[0]?.price) * 0.06,
               quantity: parseFloat(quantityBuySecond),
             };
             bot.sendMessage(
@@ -535,7 +536,7 @@ const handleTrading = async (close_price) => {
 
       //Cập nhật mua thòng bước 1
       if (mileStone === 1 && secondBuy.quantity !== 0) {
-        secondBuy.priceSold = latestPrice - latestPrice * 0.05;
+        secondBuy.priceSold = latestPrice - latestPrice * 0.06;
       }
       await bot.sendMessage(
         chat_id,
