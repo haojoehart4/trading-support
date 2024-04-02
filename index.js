@@ -121,6 +121,7 @@ bot.on("polling_error", (msg) => console.log(msg));
 // Subscribe to the Binance websocket stream for the market price of BTCUSDT
 let chat_id = 0;
 let mileStone = 1;
+let loseBuy = 0;
 let priceStone1 = 0;
 let tokenPairs = "btcusdt";
 let boughtPrice = 0;
@@ -179,6 +180,7 @@ bot.onText(/\/stop/, async (msg) => {
 
 const resetDefault = () => {
   mileStone = 1;
+  loseBuy = 0;
   priceStone1 = 0;
   boughtPrice = 0;
   chat_id = null;
@@ -250,6 +252,7 @@ bot.on("message", (msg) => {
             priceStoneUpdated = parseFloat(boughtPriceFloat);
             priceStone1 =
               parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.12;
+              loseBuy = parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.6;
             // priceStoneHalf =
             //   parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
             bot.sendMessage(
@@ -298,6 +301,7 @@ bot.on("message", (msg) => {
             priceSold: 0,
             quantity: 0,
           };
+          loseBuy = 0
           bot.sendMessage(
             chat_id,
             `Bán second_buy với giá: ${res.fills[0]?.price}, khối lượng: ${quantitySold}, mileStone=${mileStone}`
@@ -493,7 +497,7 @@ const handleTrading = async (close_price) => {
      if (mileStone === 1) {
       //-----KHI ĐANG Ở MILESTONE = 1, GIÁ THỤT 1 NỬA SO VỚI LÚC MUA VÀ SECONDBUY.QUANTITY = 0-----//
       if (
-        latestPrice <= boughtPrice - boughtPrice * 0.06 &&
+        latestPrice <= loseBuy &&
         secondBuy.quantity === 0
       ) {
         //mua tiep 25% khi dang lỗ 7% ở bước 1
@@ -537,6 +541,8 @@ const handleTrading = async (close_price) => {
       //Cập nhật mua thòng bước 1
       if (mileStone === 1 && secondBuy.quantity !== 0) {
         secondBuy.priceSold = latestPrice - latestPrice * 0.06;
+      } else if(mileStone === 1 && secondBuy.quantity === 0) {
+        loseBuy = latestPrice - latestPrice * 0.06
       }
       await bot.sendMessage(
         chat_id,
