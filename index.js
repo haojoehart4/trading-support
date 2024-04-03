@@ -315,7 +315,7 @@ bot.on("message", (msg) => {
         });
     } catch (e) {
       console.log(e.response);
-      bot.sendMessage("Stop found.");
+      bot.sendMessage(chat_id, "Stop found.");
       return false;
     }
   }
