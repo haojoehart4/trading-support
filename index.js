@@ -140,6 +140,7 @@ let quantityBuy = 0;
 let secondBuy = {
   priceSold: 0,
   quantity: 0,
+  priceBought: 0
 };
 let numberStone = 10;
 let isBuyDouble = false;
@@ -196,6 +197,7 @@ const resetDefault = () => {
   secondBuy = {
     priceSold: 0,
     quantity: 0,
+    priceBought: 0
   };
   isBuyDouble = false;
 };
@@ -300,6 +302,7 @@ bot.on("message", (msg) => {
           secondBuy = {
             priceSold: 0,
             quantity: 0,
+            priceBought: 0
           };
           loseBuy = 0
           bot.sendMessage(
@@ -405,7 +408,7 @@ const handleTrading = async (close_price) => {
         ) {
           sessionDownTrend = 0;
 
-          if (mileStone === 1 && isBuyDouble) {
+          if (isBuyDouble) {
             isBuyDouble = false;
             totalBalance = await getTotalBalance(binance, "USDT");
             const fiftyPercent = Math.round(totalBalance * 0.5);
@@ -416,8 +419,9 @@ const handleTrading = async (close_price) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.05,
+                    parseFloat(res?.fills[0]?.price) * 0.06,
                   quantity: parseFloat(quantityBuySecond),
+                  priceBought: parseFloat(res?.fills[0]?.price)
                 };
                 bot.sendMessage(
                   chat_id,
@@ -442,8 +446,9 @@ const handleTrading = async (close_price) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.05,
+                    parseFloat(res?.fills[0]?.price) * 0.06,
                   quantity: parseFloat(quantityBuySecond),
+                  priceBought: parseFloat(res?.fills[0]?.price)
                 };
                 mileStone = 2;
                 bot.sendMessage(
@@ -468,8 +473,9 @@ const handleTrading = async (close_price) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.05,
+                    parseFloat(res?.fills[0]?.price) * 0.06,
                   quantity: quantityBuyThird,
+                  priceBought: parseFloat(res?.fills[0]?.price)
                 };
                 bot.sendMessage(
                   chat_id,
@@ -511,6 +517,7 @@ const handleTrading = async (close_price) => {
                 parseFloat(res?.fills[0]?.price) -
                 parseFloat(res?.fills[0]?.price) * 0.06,
               quantity: parseFloat(quantityBuySecond),
+              priceBought: parseFloat(res?.fills[0]?.price)
             };
             bot.sendMessage(
               chat_id,
@@ -556,7 +563,7 @@ const handleTrading = async (close_price) => {
     if (
       latestPrice <= priceStone1 ||
       (mileStone === 3 && latestPrice <= secondBuy.priceSold) ||
-      (percentChangeDefault >= 7.2 && mileStone === 1)
+      (percentChangeDefault >= 7.2 && mileStone === 1) || (mileStone > 1 && (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.2)
     ) {
       const totalQty = Math.round(
         quantityBuy +
@@ -571,12 +578,14 @@ const handleTrading = async (close_price) => {
             `Sell all tokens with price ${res1?.fills[0]?.price}, quantity = ${totalQty}, mileStone = ${mileStone}`
           );
 
-          if (percentChangeDefault >= 7 && mileStone === 1) {
+          if (percentChangeDefault >= 7.2 && mileStone === 1 || (mileStone > 1 && (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.2)) {
             await resetDefault();
             objTrading.isCompleteDefault = true;
             isBuyDouble = true;
-            objTrading.specificTime = new Date().getUTCHours();
-            objTrading.specificMin = new Date().getUTCMinutes();
+            if(percentChangeDefault >= 7.2 && mileStone === 1) {
+              objTrading.specificTime = new Date().getUTCHours();
+              objTrading.specificMin = new Date().getUTCMinutes();
+            }
             bot.sendMessage(
               chat_id,
               `Complete Default, PriceStone: ${priceStone1}, numberStone: ${numberStone}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
