@@ -121,7 +121,6 @@ bot.on("polling_error", (msg) => console.log(msg));
 // Subscribe to the Binance websocket stream for the market price of BTCUSDT
 let chat_id = 0;
 let mileStone = 1;
-let loseBuy = 0;
 let priceStone1 = 0;
 let tokenPairs = "btcusdt";
 let boughtPrice = 0;
@@ -140,9 +139,9 @@ let quantityBuy = 0;
 let secondBuy = {
   priceSold: 0,
   quantity: 0,
-  priceBought: 0
+  priceBought: 0,
 };
-let numberStone = 10;
+let numberStone = 12;
 let isBuyDouble = false;
 
 const targetTime = new Date();
@@ -172,7 +171,7 @@ bot.onText(/\/stop/, async (msg) => {
   tokenPairs = "BTCUSDT";
   await bot.sendMessage(msg.chat.id, "Stop bot successfully");
   await resetDefault();
-  await closeInterval()
+  await closeInterval();
   if (bot.isPolling()) {
     await bot.stopPolling({ cancel: true });
   }
@@ -181,7 +180,6 @@ bot.onText(/\/stop/, async (msg) => {
 
 const resetDefault = () => {
   mileStone = 1;
-  loseBuy = 0;
   priceStone1 = 0;
   boughtPrice = 0;
   chat_id = null;
@@ -197,7 +195,7 @@ const resetDefault = () => {
   secondBuy = {
     priceSold: 0,
     quantity: 0,
-    priceBought: 0
+    priceBought: 0,
   };
   isBuyDouble = false;
 };
@@ -241,7 +239,7 @@ bot.on("message", (msg) => {
         const pairsPrice = await axios.get(
           `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
         );
-        const first25Percent = Math.round(totalBalance * 0.25);
+        const first25Percent = Math.round(totalBalance * 0.5);
         quantityBuy = Math.round(
           first25Percent / parseFloat(pairsPrice.data.price)
         );
@@ -253,8 +251,8 @@ bot.on("message", (msg) => {
             boughtPrice = parseFloat(boughtPriceFloat);
             priceStoneUpdated = parseFloat(boughtPriceFloat);
             priceStone1 =
-              parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.12;
-              loseBuy = parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.6;
+              parseFloat(boughtPriceFloat) -
+              parseFloat(boughtPriceFloat) * 0.12;
             // priceStoneHalf =
             //   parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
             bot.sendMessage(
@@ -266,7 +264,7 @@ bot.on("message", (msg) => {
                 const result = await axios.get(
                   `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
                 );
-                handleTrading(parseFloat(result?.data?.price));
+                await handleTrading(parseFloat(result?.data?.price));
               } catch (e) {
                 console.log(e?.response?.data?.message);
               }
@@ -294,7 +292,9 @@ bot.on("message", (msg) => {
 
   if (msg.text.toString().toLowerCase().indexOf("sold second") !== -1) {
     try {
-      const totalQty = Math.round(secondBuy.quantity - secondBuy.quantity * 0.2);
+      const totalQty = Math.round(
+        secondBuy.quantity - secondBuy.quantity * 0.2
+      );
       quantityBuy = secondBuy.quantity - totalQty;
       binance
         .marketSell(tokenPairs.toUpperCase(), totalQty)
@@ -302,9 +302,8 @@ bot.on("message", (msg) => {
           secondBuy = {
             priceSold: 0,
             quantity: 0,
-            priceBought: 0
+            priceBought: 0,
           };
-          loseBuy = 0
           bot.sendMessage(
             chat_id,
             `Bán second_buy với giá: ${res.fills[0]?.price}, khối lượng: ${quantitySold}, mileStone=${mileStone}`
@@ -383,7 +382,7 @@ const handleTrading = async (close_price) => {
         (latestPrice - parseFloat(rltLatest.closePrice)) /
         parseFloat(rltLatest.closePrice);
 
-      if (percentChange < 3) {
+      if (percentChange < 4) {
         // IN CASE PERCENTCHANGE < 3
         sessionDownTrend += 1;
         objTrading.isCompleteInterval = true;
@@ -411,34 +410,35 @@ const handleTrading = async (close_price) => {
           if (isBuyDouble) {
             isBuyDouble = false;
             totalBalance = await getTotalBalance(binance, "USDT");
-            const fiftyPercent = Math.round(totalBalance * 0.5);
-            const quantityBuySecond = Math.round(fiftyPercent / latestPrice);
+            const fullMoney = Math.round(totalBalance);
+            const quantityBuySecond = Math.round(fullMoney / latestPrice);
             await binance
               .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
               .then((res) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.06,
+                    parseFloat(res?.fills[0]?.price) * 0.12,
                   quantity: parseFloat(quantityBuySecond),
-                  priceBought: parseFloat(res?.fills[0]?.price)
+                  priceBought: parseFloat(res?.fills[0]?.price),
                 };
+                mileStone = 2
                 bot.sendMessage(
                   chat_id,
-                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1},
+                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}, MILESTONE: ${mileStone}
               VÀ THÔNG TIN MUA LẦN 2: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
                 );
               })
               .catch((err) => {
                 bot.sendMessage(
                   chat_id,
-                  `Can not buy this 25% pairs at the second time - ${err?.message}`
+                  `Can not buy this 50% pairs at the second time - ${err?.message}`
                 );
               });
           } else if (mileStone === 1 && secondBuy.quantity === 0) {
-            const twentyFivePercent = Math.round(totalBalance * 0.25);
+            const fiftyPercent = Math.round(totalBalance * 0.5);
             const quantityBuySecond = Math.round(
-              twentyFivePercent / latestPrice
+              fiftyPercent / latestPrice
             );
             await binance
               .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
@@ -446,47 +446,21 @@ const handleTrading = async (close_price) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.06,
+                    parseFloat(res?.fills[0]?.price) * 0.12,
                   quantity: parseFloat(quantityBuySecond),
-                  priceBought: parseFloat(res?.fills[0]?.price)
+                  priceBought: parseFloat(res?.fills[0]?.price),
                 };
                 mileStone = 2;
                 bot.sendMessage(
                   chat_id,
-                  `MUA LẦN 2 VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1},
-              VÀ THÔNG TIN MUA LẦN 2: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
+                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}, MILESTONE: ${mileStone}
+                  VÀ THÔNG TIN MUA LẦN 2: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
                 );
               })
               .catch((err) => {
                 bot.sendMessage(
                   chat_id,
                   `Can not buy this 25% pairs at the second time - ${err?.message}`
-                );
-              });
-          } else if (mileStone === 2) {
-            const fiftyPercent = Math.round(totalBalance * 0.25);
-            const quantityBuyThird = Math.round(fiftyPercent / latestPrice);
-            await binance
-              .marketBuy(tokenPairs.toUpperCase(), quantityBuyThird)
-              .then((res) => {
-                mileStone = 3;
-                secondBuy = {
-                  priceSold:
-                    parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.06,
-                  quantity: quantityBuyThird,
-                  priceBought: parseFloat(res?.fills[0]?.price)
-                };
-                bot.sendMessage(
-                  chat_id,
-                  `MUA LẦN 3 VỚI GIÁ: ${res?.fills[0]?.price}, KHỐI LƯỢNG: 25% - SỐ LƯỢNG: ${quantityBuyThird}, priceStone: ${priceStone1},
-              Third_buy_info: ( priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity} )`
-                );
-              })
-              .catch((err) => {
-                bot.sendMessage(
-                  chat_id,
-                  `Can not buy this 25% pairs at the third time - ${err?.message}`
                 );
               });
           }
@@ -500,57 +474,10 @@ const handleTrading = async (close_price) => {
 
     const percentChangeDefault =
       ((latestPrice - boughtPrice) / boughtPrice) * 100;
-     if (mileStone === 1) {
-      //-----KHI ĐANG Ở MILESTONE = 1, GIÁ THỤT 1 NỬA SO VỚI LÚC MUA VÀ SECONDBUY.QUANTITY = 0-----//
-      if (
-        latestPrice <= loseBuy &&
-        secondBuy.quantity === 0
-      ) {
-        //mua tiep 25% khi dang lỗ 7% ở bước 1
-        const twentyFivePercent = Math.round(totalBalance * 0.25);
-        const quantityBuySecond = Math.round(twentyFivePercent / latestPrice);
-        await binance
-          .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
-          .then((res) => {
-            secondBuy = {
-              priceSold:
-                parseFloat(res?.fills[0]?.price) -
-                parseFloat(res?.fills[0]?.price) * 0.06,
-              quantity: parseFloat(quantityBuySecond),
-              priceBought: parseFloat(res?.fills[0]?.price)
-            };
-            bot.sendMessage(
-              chat_id,
-              `Mua THÒNG với giá: ${res?.fills[0]?.price}, Khối lượng: 25% - Số lượng: ${quantityBuySecond}, priceStone: ${priceStone1},
-            Second_buy_info: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
-            );
-          })
-          .catch((err) => {
-            bot.sendMessage(
-              chat_id,
-              `Can not buy this 25% pairs at the second time - ${err?.message}`
-            );
-          });
-      }
-    }
-    //   //---------------------//--------------------//--------------------//--------------------
-    // }
-    else if (mileStone === 2) {
-      numberStone = 10;
-    } else if (mileStone === 3) {
-      numberStone = 5;
-    }
 
     //-------------- CẬP NHẬT PRICESTONE VÀ MUA THÒNG --------------------//
     if (percentChange > 1.05) {
-      priceStone1 = latestPrice - latestPrice * (numberStone / 100);
-
-      //Cập nhật mua thòng bước 1
-      if (mileStone === 1 && secondBuy.quantity !== 0) {
-        secondBuy.priceSold = latestPrice - latestPrice * 0.06;
-      } else if(mileStone === 1 && secondBuy.quantity === 0) {
-        loseBuy = latestPrice - latestPrice * 0.06
-      }
+      priceStone1 = latestPrice - latestPrice * 0.12;
       await bot.sendMessage(
         chat_id,
         `Cập nhật pricestone: ${priceStone1}, latestPrice: ${latestPrice}, mileStone: ${mileStone}, secondBuy_priceSold: ${secondBuy.priceSold}`
@@ -560,10 +487,18 @@ const handleTrading = async (close_price) => {
     // ----------------------//------------------------//
 
     //----------------------- KHI GIÁ MỚI NHẤT <= PRICESTONE => BÁN HẾT + NGHỈ CHƠI---------------------------//
+
+    let priceSecondChange =
+      mileStone > 1 &&
+      (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.2
+        ? true
+        : false;
+    let priceDefaultChange =
+      mileStone === 1 && percentChangeDefault >= 7.2 ? true : false;
+
     if (
       latestPrice <= priceStone1 ||
-      (mileStone === 3 && latestPrice <= secondBuy.priceSold) ||
-      (percentChangeDefault >= 7.2 && mileStone === 1) || (mileStone > 1 && (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.2)
+      (mileStone === 2 && latestPrice <= secondBuy.priceSold)
     ) {
       const totalQty = Math.round(
         quantityBuy +
@@ -577,23 +512,6 @@ const handleTrading = async (close_price) => {
             chat_id,
             `Sell all tokens with price ${res1?.fills[0]?.price}, quantity = ${totalQty}, mileStone = ${mileStone}`
           );
-
-          if (percentChangeDefault >= 7.2 && mileStone === 1 || (mileStone > 1 && (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.2)) {
-            await resetDefault();
-            objTrading.isCompleteDefault = true;
-            isBuyDouble = true;
-            if(percentChangeDefault >= 7.2 && mileStone === 1) {
-              objTrading.specificTime = new Date().getUTCHours();
-              objTrading.specificMin = new Date().getUTCMinutes();
-            }
-            bot.sendMessage(
-              chat_id,
-              `Complete Default, PriceStone: ${priceStone1}, numberStone: ${numberStone}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
-            );
-          } else {
-            await resetDefault();
-            await closeInterval();
-          }
         })
         .catch((err) => {
           bot.sendMessage(
@@ -601,10 +519,66 @@ const handleTrading = async (close_price) => {
             `Sold side, can not sell pairs - ${err?.body}`
           );
         });
-      //-----------------------------//----------------------------//
+      resetDefault();
+      closeInterval();
+    } else if (priceSecondChange || priceDefaultChange) {
+      await binance
+        .marketSell(tokenPairs.toUpperCase(), totalQty)
+        .then(async (res1) => {
+          await resetDefault();
+          objTrading.isCompleteDefault = true;
+          isBuyDouble = true;
+          objTrading.specificTime = new Date().getUTCHours();
+          objTrading.specificMin = new Date().getUTCMinutes();
+          bot.sendMessage(
+            chat_id,
+            `Complete Default, PriceStone: ${priceStone1}, numberStone: ${numberStone}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
+          );
+          await bot.sendMessage(
+            chat_id,
+            `Sell all tokens with price ${res1?.fills[0]?.price}, quantity = ${totalQty}, mileStone = ${mileStone}`
+          );
+        })
+        .catch((err) => {
+          bot.sendMessage(
+            chat_id,
+            `Sold side, can not sell pairs - ${err?.body}`
+          );
+        });
+    } else if(mileStone === 1 && latestPrice <= priceBought - priceBought * 0.06){
+      // Bán 1 nửa vol khi giá giảm 50% so với lúc mua
+      const halfQty = Math.round(totalBalance - totalBalance * 0.05)
+      await binance
+        .marketSell(tokenPairs.toUpperCase(), halfQty)
+        .then(async (res1) => {
+          totalQty -= halfQty
+          objTrading.isCompleteDefault = true;
+          objTrading.specificTime = new Date().getUTCHours();
+          objTrading.specificMin = new Date().getUTCMinutes();
+          sessionDownTrend = 1
+          await bot.sendMessage(
+            chat_id,
+            `Waiting for 4 hours - Session_down_trend = ${sessionDownTrend} - Sell 50% tokens with price ${res1?.fills[0]?.price}, quantity = ${halfQty}, mileStone = ${mileStone}, rest_quantity = ${totalQty}`
+          );
+        })
     } else if (mileStone === 2) {
       // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
-      if (latestPrice <= secondBuy.priceSold) {
+      if(latestPrice <= secondBuy.priceBought - secondBuy.priceBought * 0.06) {
+        const halfQtySecondBuy = secondBuy.quantity - secondBuy.quantity * 0.05
+        secondBuy.quantity = secondBuy.quantity - halfQtySecondBuy
+        await binance
+          .marketSell(tokenPairs.toUpperCase(), halfQty)
+          .then(async (res1) => {
+            objTrading.isCompleteDefault = true;
+            objTrading.specificTime = new Date().getUTCHours();
+            objTrading.specificMin = new Date().getUTCMinutes();
+            sessionDownTrend += 1
+            await bot.sendMessage(
+              chat_id,
+              `Waiting for 4 hours - Session_down_trend = ${sessionDownTrend} - Sell 50% tokens with price ${res1?.fills[0]?.price}, quantity = ${halfQty}, mileStone = ${mileStone}, rest_quantity = ${totalQty}`
+            );
+          })
+      } else if (latestPrice <= secondBuy.priceSold) {
         const quantity = Math.round(secondBuy.quantity * 0.2);
         await binance
           .marketSell(tokenPairs.toUpperCase(), quantity)
@@ -616,6 +590,7 @@ const handleTrading = async (close_price) => {
             secondBuy = {
               priceSold: 0,
               quantity: 0,
+              priceBought: 0
             };
             mileStone = 1;
           })
@@ -627,21 +602,6 @@ const handleTrading = async (close_price) => {
           });
       }
       // ------------------------//-----------------------//--------------------
-    } else if (mileStone === 1 && latestPrice <= secondBuy.priceSold) {
-      // KHI ĐANG Ở BƯỚC 1 VÀ GIÁ MỚI NHẤT <= GIÁ MUA THÒNG ====> BÁN MUA THÒNG
-      await binance
-        .marketSell(tokenPairs.toUpperCase(), secondBuy.quantity)
-        .then((res) => {
-          secondBuy = {
-            priceSold: 0,
-            quantity: 0,
-          };
-          bot.sendMessage(
-            chat_id,
-            `Bán mua THÒNG bước 1 với giá: ${res.fills[0]?.price}, khối lượng: ${quantitySold}, mileStone=${mileStone}`
-          );
-        });
-      // ---------------------------//----------------------//-----------------
     }
   } catch (err) {
     console.log("something");
