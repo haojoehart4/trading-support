@@ -38,7 +38,8 @@ const binance = new Binance().options({
   APISECRET: process.env.BINANCE_API_SECRET_KEY,
   family: 4,
   useServerTime: true,
-  reconnect: true
+  reconnect: true,
+  recvWindow: 60000 
 });
 
 // binance.futuresPrices()
@@ -83,10 +84,10 @@ const binance = new Binance().options({
 //   console.info("Price of BNB: ", ticker.BNBBTC);
 // });
 
-binance.balance((error, balances) => {
-  if ( error ) return console.error(error);
-  console.info("balances()", balances);
-});
+// binance.balance((error, balances) => {
+//   if ( error ) return console.error(error);
+//   console.info("balances()", balances);
+// });
 
 // binance.futuresMiniTickerStream( 'LQTYUSDT', (response) => {
 //   console.log('LQTYUSDT::', response)
