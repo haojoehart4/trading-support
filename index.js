@@ -37,14 +37,11 @@ app.get("/", (req, res) => {
 const binance = new Binance().options({
   APIKEY: process.env.BINACE_API_KEY,
   APISECRET: process.env.BINANCE_API_SECRET_KEY,
+  family: 4,
   useServerTime: true,
   reconnect: true,
-  family: 4,
+  verbose: true,
 });
-
-console.log('balance', binance.balance((err, balances) => {
-  console.log("balances()", balances)
-}))
 
 // binance.futuresPrices()
 // .then((data) => console.log(`Future Price`, data))
@@ -84,11 +81,15 @@ console.log('balance', binance.balance((err, balances) => {
 //   console.log("Total sell volume: ", totalSellVolume);
 // });
 
-// binance.balance((error, balances) => {
-//   if ( error ) return console.error(error);
-//   console.info("balances()", balances);
-//   console.info("ETH balance: ", balances.ETH.available);
-// });
+binance.prices('BNBBTC', (error, ticker) => {
+  console.info("Price of BNB: ", ticker.BNBBTC);
+});
+
+binance.balance((error, balances) => {
+  if ( error ) return console.error(error);
+  console.info("balances()", balances);
+  console.info("ETH balance: ", balances.ETH.available);
+});
 
 // binance.futuresMiniTickerStream( 'LQTYUSDT', (response) => {
 //   console.log('LQTYUSDT::', response)
@@ -335,7 +336,7 @@ bot.on("message", (msg) => {
 //   console.log(err)
 // })
 // getTotalBalance
-// getTotalBalance(binance, "LQTY")
+// getTotalBalance(binance, "USDT")
 //     .then(res => {
 //       console.log(res)
 //     })
@@ -426,7 +427,7 @@ const handleTrading = async (close_price) => {
                   quantity: parseFloat(quantityBuySecond),
                   priceBought: parseFloat(res?.fills[0]?.price),
                 };
-                mileStone = 2
+                mileStone = 2;
                 bot.sendMessage(
                   chat_id,
                   `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}, MILESTONE: ${mileStone}
@@ -441,9 +442,7 @@ const handleTrading = async (close_price) => {
               });
           } else if (mileStone === 1 && secondBuy.quantity === 0) {
             const fiftyPercent = Math.round(totalBalance * 0.5);
-            const quantityBuySecond = Math.round(
-              fiftyPercent / latestPrice
-            );
+            const quantityBuySecond = Math.round(fiftyPercent / latestPrice);
             await binance
               .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
               .then((res) => {
@@ -549,39 +548,42 @@ const handleTrading = async (close_price) => {
             `Sold side, can not sell pairs - ${err?.body}`
           );
         });
-    } else if(mileStone === 1 && latestPrice <= priceBought - priceBought * 0.06){
+    } else if (
+      mileStone === 1 &&
+      latestPrice <= priceBought - priceBought * 0.06
+    ) {
       // Bán 1 nửa vol khi giá giảm 50% so với lúc mua
-      const halfQty = Math.round(totalBalance - totalBalance * 0.05)
+      const halfQty = Math.round(totalBalance - totalBalance * 0.05);
       await binance
         .marketSell(tokenPairs.toUpperCase(), halfQty)
         .then(async (res1) => {
-          totalQty -= halfQty
+          totalQty -= halfQty;
           objTrading.isCompleteDefault = true;
           objTrading.specificTime = new Date().getUTCHours();
           objTrading.specificMin = new Date().getUTCMinutes();
-          sessionDownTrend = 1
+          sessionDownTrend = 1;
           await bot.sendMessage(
             chat_id,
             `Waiting for 4 hours - Session_down_trend = ${sessionDownTrend} - Sell 50% tokens with price ${res1?.fills[0]?.price}, quantity = ${halfQty}, mileStone = ${mileStone}, rest_quantity = ${totalQty}`
           );
-        })
+        });
     } else if (mileStone === 2) {
       // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
-      if(latestPrice <= secondBuy.priceBought - secondBuy.priceBought * 0.06) {
-        const halfQtySecondBuy = secondBuy.quantity - secondBuy.quantity * 0.05
-        secondBuy.quantity = secondBuy.quantity - halfQtySecondBuy
+      if (latestPrice <= secondBuy.priceBought - secondBuy.priceBought * 0.06) {
+        const halfQtySecondBuy = secondBuy.quantity - secondBuy.quantity * 0.05;
+        secondBuy.quantity = secondBuy.quantity - halfQtySecondBuy;
         await binance
           .marketSell(tokenPairs.toUpperCase(), halfQty)
           .then(async (res1) => {
             objTrading.isCompleteDefault = true;
             objTrading.specificTime = new Date().getUTCHours();
             objTrading.specificMin = new Date().getUTCMinutes();
-            sessionDownTrend += 1
+            sessionDownTrend += 1;
             await bot.sendMessage(
               chat_id,
               `Waiting for 4 hours - Session_down_trend = ${sessionDownTrend} - Sell 50% tokens with price ${res1?.fills[0]?.price}, quantity = ${halfQty}, mileStone = ${mileStone}, rest_quantity = ${totalQty}`
             );
-          })
+          });
       } else if (latestPrice <= secondBuy.priceSold) {
         const quantity = Math.round(secondBuy.quantity * 0.2);
         await binance
@@ -594,7 +596,7 @@ const handleTrading = async (close_price) => {
             secondBuy = {
               priceSold: 0,
               quantity: 0,
-              priceBought: 0
+              priceBought: 0,
             };
             mileStone = 1;
           })
