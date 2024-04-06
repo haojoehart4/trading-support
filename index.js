@@ -81,14 +81,13 @@ const binance = new Binance().options({
 //   console.log("Total sell volume: ", totalSellVolume);
 // });
 
-binance.prices('BNBBTC', (error, ticker) => {
-  console.info("Price of BNB: ", ticker.BNBBTC);
-});
+// binance.prices('BNBBTC', (error, ticker) => {
+//   console.info("Price of BNB: ", ticker.BNBBTC);
+// });
 
 binance.balance((error, balances) => {
   if ( error ) return console.error(error);
   console.info("balances()", balances);
-  console.info("ETH balance: ", balances.ETH.available);
 });
 
 // binance.futuresMiniTickerStream( 'LQTYUSDT', (response) => {
