@@ -33,9 +33,6 @@ app.get("/", (req, res) => {
   res.send("Hello from Node.js!");
 });
 
-process.env.https_proxy='http://127.0.0.1:1087';
-process.env.socks_proxy='socks://127.0.0.1:1086';
-
 const binance = new Binance().options({
   APIKEY: process.env.BINACE_API_KEY,
   APISECRET: process.env.BINANCE_API_SECRET_KEY,
@@ -44,6 +41,8 @@ const binance = new Binance().options({
   reconnect: true,
   recvWindow: 60000 
 });
+
+binance.useServerTime()
 
 // binance.futuresPrices()
 // .then((data) => console.log(`Future Price`, data))
