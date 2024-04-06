@@ -42,7 +42,7 @@ const binance = new Binance().options({
   recvWindow: 60000 
 });
 
-// binance.useServerTime()
+binance.useServerTime()
 
 // binance.futuresPrices()
 // .then((data) => console.log(`Future Price`, data))
