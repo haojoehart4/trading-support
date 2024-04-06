@@ -42,6 +42,10 @@ const binance = new Binance().options({
   family: 4,
 });
 
+console.log('balance', binance.balance((err, balances) => {
+  console.log("balances()", balances)
+}))
+
 // binance.futuresPrices()
 // .then((data) => console.log(`Future Price`, data))
 // .catch((err) => console.log(err))
