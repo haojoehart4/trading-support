@@ -39,8 +39,7 @@ const binance = new Binance().options({
   APISECRET: process.env.BINANCE_API_SECRET_KEY,
   family: 4,
   useServerTime: true,
-  reconnect: true,
-  verbose: true,
+  reconnect: true
 });
 
 // binance.futuresPrices()
