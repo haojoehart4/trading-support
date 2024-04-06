@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-const { Server } = require("socket.io");
 // const ws = require('ws')
 const cors = require("cors");
 const Binance = require("node-binance-api");
