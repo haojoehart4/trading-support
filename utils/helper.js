@@ -94,7 +94,7 @@ const getTotalBalance = (binance, baseAsset = null) => {
         }
         if (baseAsset) {
           result = parseFloat(balances[baseAsset].available);
-          resolve(result)
+          resolve(result) 
         } else {
           const responseToUser = balanceResult.join(", ");
           resolve(`Your balance information here: ${responseToUser}`)
