@@ -39,10 +39,10 @@ const binance = new Binance().options({
   family: 4,
   useServerTime: true,
   reconnect: true,
-  recvWindow: 60000 
+  recvWindow: 60000,
 });
 
-binance.useServerTime()
+// binance.useServerTime()
 
 // binance.futuresPrices()
 // .then((data) => console.log(`Future Price`, data))
@@ -210,20 +210,38 @@ const closeInterval = () => {
 
 bot.on("message", (msg) => {
   if (msg.text.toString().toLowerCase().indexOf("balance") !== -1) {
-    binance.balance((error, balances) => {
-      if (error) return console.error(error);
-      let balanceResult = [];
-      for (const x in balances) {
-        if (parseFloat(balances[x].available) > 0) {
-          balanceResult.push(`${x}: ${balances[x].available}`);
-        }
-      }
-      const responseToUser = balanceResult.join(", ");
-      bot.sendMessage(
-        msg.chat.id,
-        `Your balance information here: ${responseToUser}`
-      );
-    });
+    // binance.balance((error, balances) => {
+    //   if (error) return console.error(error);
+    //   let balanceResult = [];
+    //   for (const x in balances) {
+    //     if (parseFloat(balances[x].available) > 0) {
+    //       balanceResult.push(`${x}: ${balances[x].available}`);
+    //     }
+    //   }
+    //   const responseToUser = balanceResult.join(", ");
+    //   bot.sendMessage(
+    //     msg.chat.id,
+    //     `Your balance information here: ${responseToUser}`
+    //   );
+    // });
+    const timestamp = Date.now();
+    const signature = crypto
+      .createHmac("sha256", process.env.APISECRET)
+      .update(`timestamp=${timestamp}`)
+      .digest("hex");
+    const params = {
+      timestamp,
+      signature,
+      recvWindow: 5000, // Optional, milliseconds
+    };
+    axios
+      .get("https://api.binance.com/api/vs/account", { params })
+      .then((response) => {
+        console.log('haha', response.data); // Your account information
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   if (msg.text.toString().toLowerCase().indexOf("invest new token") !== -1) {
