@@ -147,9 +147,6 @@ let secondBuy = {
 let numberStone = 12;
 let isBuyDouble = false;
 
-const targetTime = new Date();
-targetTime.setHours(targetTime.getHours() + 1);
-
 bot.onText(/\/start/, (msg) => {
   chat_id = msg.chat.id;
   console.log("chat_id", chat_id);
