@@ -211,20 +211,26 @@ const closeInterval = () => {
 bot.on("message", (msg) => {
   if (msg.text.toString().toLowerCase().indexOf("balance") !== -1) {
     try{
-      binance.balance((error, balances) => {
-        if (error) return console.error(error);
-        let balanceResult = [];
-        for (const x in balances) {
-          if (parseFloat(balances[x].available) > 0) {
-            balanceResult.push(`${x}: ${balances[x].available}`);
-          }
-        }
-        const responseToUser = balanceResult.join(", ");
-        bot.sendMessage(
+      getTotalBalance(binance, "USDT").then((res) => {
+          bot.sendMessage(
           msg.chat.id,
-          `Your balance in  formation here: ${responseToUser}`
+          `Your balance in  formation here: ${res}`
         );
-      });
+      })
+      // binance.balance((error, balances) => {
+      //   if (error) return console.error(error);
+      //   let balanceResult = [];
+      //   for (const x in balances) {
+      //     if (parseFloat(balances[x].available) > 0) {
+      //       balanceResult.push(`${x}: ${balances[x].available}`);
+      //     }
+      //   }
+      //   const responseToUser = balanceResult.join(", ");
+      //   bot.sendMessage(
+      //     msg.chat.id,
+      //     `Your balance in  formation here: ${responseToUser}`
+      //   );
+      // });
     } catch(err) {
       console.log(err)
     }
