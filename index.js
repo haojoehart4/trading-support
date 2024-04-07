@@ -651,7 +651,7 @@ const handleTrading = async (close_price) => {
       // ------------------------//-----------------------//--------------------
     }
   } catch (err) {
-    console.log("something");
+    console.log("error_ne", err);
   }
 };
 
