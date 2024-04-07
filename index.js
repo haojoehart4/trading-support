@@ -39,7 +39,6 @@ const binance = new Binance().options({
   family: 4,
   useServerTime: true,
   reconnect: true,
-  recvWindow: 60000,
 });
 
 // binance.useServerTime()
