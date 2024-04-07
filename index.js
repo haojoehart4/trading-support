@@ -574,7 +574,7 @@ const handleTrading = async (close_price) => {
           isBuyDouble = true;
           objTrading.specificTime = new Date().getUTCHours();
           objTrading.specificMin = new Date().getUTCMinutes();
-          bot.sendMessage(
+          await bot.sendMessage(
             chat_id,
             `Complete Default, PriceStone: ${priceStone1}, numberStone: ${numberStone}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
           );
