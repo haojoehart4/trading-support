@@ -662,7 +662,7 @@ const server = require("http").createServer(app);
 
 // })
 
-const port = process.env.NODE_PORT;
+const port = process.env.PORT || process.env.NODE_PORT;
 server.listen(port, () => {
   console.log(`Let's trade now at ${port}`);
 });
