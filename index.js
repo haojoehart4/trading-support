@@ -173,9 +173,9 @@ bot.onText(/\/stop/, async (msg) => {
   await bot.sendMessage(msg.chat.id, "Stop bot successfully");
   await resetDefault();
   await closeInterval();
-  if (bot.isPolling()) {
-    await bot.stopPolling({ cancel: true });
-  }
+  // if (bot.isPolling()) {
+  //   await bot.stopPolling({ cancel: true });
+  // }
   //  ws.close()
 });
 
