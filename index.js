@@ -591,7 +591,7 @@ const handleTrading = async (close_price) => {
         });
     } else if (
       mileStone === 1 &&
-      latestPrice <= priceBought - priceBought * 0.06
+      latestPrice <= boughtPrice - boughtPrice * 0.06
     ) {
       // Bán 1 nửa vol khi giá giảm 50% so với lúc mua
       const halfQty = Math.round(totalBalance - totalBalance * 0.05);
