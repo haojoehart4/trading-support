@@ -124,6 +124,7 @@ bot.on("polling_error", (msg) => console.log(msg));
 // -------------------------- Binance Code Example ---------------
 // Subscribe to the Binance websocket stream for the market price of BTCUSDT
 let chat_id = 0;
+let investPercent = 0;
 let mileStone = 1;
 let priceStone1 = 0;
 let tokenPairs = "btcusdt";
@@ -185,6 +186,7 @@ const resetDefault = () => {
   chat_id = null;
   priceStoneUpdated = 0;
   sessionDownTrend = 0;
+  investPercent = 0
   objTrading = {
     allowBuy: false,
     specificTime: null,
@@ -269,9 +271,19 @@ bot.on("message", (msg) => {
     //   });
   }
 
+  //1
   if (msg.text.toString().toLowerCase().indexOf("invest new token") !== -1) {
-    bot.sendMessage(msg.chat.id, "Please type new token pairs to invest");
+    bot.sendMessage(msg.chat.id, "How many percent of nav you want to invest ?");
+    // bot.sendMessage(msg.chat.id, "Please type new token pairs to invest");
   }
+
+  //2
+  if (
+    msg.text.toString().toLowerCase().indexOf("nav") !== -1
+  ) {
+    investPercent = parseFloat(msg.text.toString().split(":")[1].trim());
+    bot.sendMessage(msg.chat.id, `Invest percent: ${investPercent}, Please type new token pairs to invest`);
+  }  
 
   if (
     msg.text.toString().toLowerCase().indexOf("usdt") !== -1 &&
@@ -279,7 +291,7 @@ bot.on("message", (msg) => {
   ) {
     getTotalBalance(binance, "USDT")
       .then(async (res) => {
-        totalBalance = res;
+        totalBalance = res * (investPercent / 100);
         tokenPairs = msg.text.toString().split(":")[1].trim();
         const pairsPrice = await axios.get(
           `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
@@ -302,7 +314,7 @@ bot.on("message", (msg) => {
             //   parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
             bot.sendMessage(
               chat_id,
-              `Buy at price=${res1?.fills[0]?.price} and quantity_response=${quantityBuy}`
+              `Buy at price=${res1?.fills[0]?.price} and quantity_response=${quantityBuy}, priceStone=${priceStone1}`
             );
             const connectAndListen = async () => {
               try {
