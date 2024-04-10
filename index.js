@@ -145,7 +145,6 @@ let secondBuy = {
   quantity: 0,
   priceBought: 0,
 };
-let numberStone = 12;
 let isBuyDouble = false;
 
 bot.onText(/\/start/, (msg) => {
@@ -298,7 +297,7 @@ bot.on("message", (msg) => {
             priceStoneUpdated = parseFloat(boughtPriceFloat);
             priceStone1 =
               parseFloat(boughtPriceFloat) -
-              parseFloat(boughtPriceFloat) * 0.12;
+              parseFloat(boughtPriceFloat) * 0.068;
             // priceStoneHalf =
             //   parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
             bot.sendMessage(
@@ -464,7 +463,7 @@ const handleTrading = async (close_price) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.12,
+                    parseFloat(res?.fills[0]?.price) * 0.068,
                   quantity: parseFloat(quantityBuySecond),
                   priceBought: parseFloat(res?.fills[0]?.price),
                 };
@@ -490,7 +489,7 @@ const handleTrading = async (close_price) => {
                 secondBuy = {
                   priceSold:
                     parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.12,
+                    parseFloat(res?.fills[0]?.price) * 68,
                   quantity: parseFloat(quantityBuySecond),
                   priceBought: parseFloat(res?.fills[0]?.price),
                 };
@@ -521,7 +520,7 @@ const handleTrading = async (close_price) => {
 
     //-------------- CẬP NHẬT PRICESTONE VÀ MUA THÒNG --------------------//
     if (percentChange > 2) {
-      priceStone1 = latestPrice - latestPrice * 0.12;
+      priceStone1 = latestPrice - latestPrice * 0.68;
       await bot.sendMessage(
         chat_id,
         `Cập nhật pricestone: ${priceStone1}, latestPrice: ${latestPrice}, mileStone: ${mileStone}, secondBuy_priceSold: ${secondBuy.priceSold}`
@@ -576,7 +575,7 @@ const handleTrading = async (close_price) => {
           objTrading.specificMin = new Date().getUTCMinutes();
           await bot.sendMessage(
             chat_id,
-            `Complete Default, PriceStone: ${priceStone1}, numberStone: ${numberStone}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
+            `Complete Default, PriceStone: ${priceStone1}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
           );
           await bot.sendMessage(
             chat_id,
@@ -589,28 +588,9 @@ const handleTrading = async (close_price) => {
             `Sold side, can not sell pairs - ${err?.body}`
           );
         });
-    } else if (
-      mileStone === 1 &&
-      latestPrice <= boughtPrice - boughtPrice * 0.06
-    ) {
-      // Bán 1 nửa vol khi giá giảm 50% so với lúc mua
-      const halfQty = Math.round(totalBalance - totalBalance * 0.05);
-      await binance
-        .marketSell(tokenPairs.toUpperCase(), halfQty)
-        .then(async (res1) => {
-          totalQty -= halfQty;
-          objTrading.isCompleteDefault = true;
-          objTrading.specificTime = new Date().getUTCHours();
-          objTrading.specificMin = new Date().getUTCMinutes();
-          sessionDownTrend = 1;
-          await bot.sendMessage(
-            chat_id,
-            `Waiting for 4 hours - Session_down_trend = ${sessionDownTrend} - Sell 50% tokens with price ${res1?.fills[0]?.price}, quantity = ${halfQty}, mileStone = ${mileStone}, rest_quantity = ${totalQty}`
-          );
-        });
     } else if (mileStone === 2) {
       // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
-      if (latestPrice <= secondBuy.priceBought - secondBuy.priceBought * 0.06) {
+      if (latestPrice <= secondBuy.priceBought - secondBuy.priceBought * 0.068) {
         const halfQtySecondBuy = secondBuy.quantity - secondBuy.quantity * 0.05;
         secondBuy.quantity = secondBuy.quantity - halfQtySecondBuy;
         await binance
