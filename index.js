@@ -590,26 +590,15 @@ const handleTrading = async (close_price) => {
         });
     } else if (mileStone === 2) {
       // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
-      if (latestPrice <= secondBuy.priceBought - secondBuy.priceBought * 0.068) {
-        const halfQtySecondBuy = secondBuy.quantity - secondBuy.quantity * 0.05;
-        secondBuy.quantity = secondBuy.quantity - halfQtySecondBuy;
-        await binance
-          .marketSell(tokenPairs.toUpperCase(), halfQty)
-          .then(async (res1) => {
-            objTrading.isCompleteDefault = true;
-            objTrading.specificTime = new Date().getUTCHours();
-            objTrading.specificMin = new Date().getUTCMinutes();
-            sessionDownTrend += 1;
-            await bot.sendMessage(
-              chat_id,
-              `Waiting for 4 hours - Session_down_trend = ${sessionDownTrend} - Sell 50% tokens with price ${res1?.fills[0]?.price}, quantity = ${halfQty}, mileStone = ${mileStone}, rest_quantity = ${totalQty}`
-            );
-          });
-      } else if (latestPrice <= secondBuy.priceSold) {
+      if (latestPrice <= secondBuy.priceSold) {
         const quantity = Math.round(secondBuy.quantity * 0.2);
         await binance
           .marketSell(tokenPairs.toUpperCase(), quantity)
           .then((res1) => {
+            objTrading.isCompleteDefault = true;
+            objTrading.specificTime = new Date().getUTCHours();
+            objTrading.specificMin = new Date().getUTCMinutes();
+            sessionDownTrend += 1;
             bot.sendMessage(
               chat_id,
               `BÁN LƯỢNG TOKENS ĐÃ MUA Ở BƯỚC 2 VỚI GIÁ: ${res1?.fills[0]?.price}, SỐ LƯỢNG: ${totalQty}, MILESTONE = ${mileStone}`
