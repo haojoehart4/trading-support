@@ -296,9 +296,9 @@ bot.on("message", (msg) => {
         const pairsPrice = await axios.get(
           `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
         );
-        const first25Percent = Math.round(totalBalance * 0.5);
+        // const first25Percent = Math.round(totalBalance * 0.5);
         quantityBuy = Math.round(
-          first25Percent / parseFloat(pairsPrice.data.price)
+          totalBalance / parseFloat(pairsPrice.data.price)
         );
 
         binance
@@ -492,33 +492,7 @@ const handleTrading = async (close_price) => {
                   `Can not buy this 50% pairs at the second time - ${err?.message}`
                 );
               });
-          } else if (mileStone === 1 && secondBuy.quantity === 0) {
-            const fiftyPercent = Math.round(totalBalance * 0.5);
-            const quantityBuySecond = Math.round(fiftyPercent / latestPrice);
-            await binance
-              .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
-              .then((res) => {
-                secondBuy = {
-                  priceSold:
-                    parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 68,
-                  quantity: parseFloat(quantityBuySecond),
-                  priceBought: parseFloat(res?.fills[0]?.price),
-                };
-                mileStone = 2;
-                bot.sendMessage(
-                  chat_id,
-                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}, MILESTONE: ${mileStone}
-                  VÀ THÔNG TIN MUA LẦN 2: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
-                );
-              })
-              .catch((err) => {
-                bot.sendMessage(
-                  chat_id,
-                  `Can not buy this 25% pairs at the second time - ${err?.message}`
-                );
-              });
-          }
+          } 
         }
         bot.sendMessage(
           chat_id,
