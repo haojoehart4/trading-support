@@ -505,7 +505,7 @@ const handleTrading = async (close_price) => {
       ((latestPrice - boughtPrice) / boughtPrice) * 100;
 
     //-------------- CẬP NHẬT PRICESTONE VÀ MUA THÒNG --------------------//
-    if (percentChange > 2) {
+    if (percentChange > 1) {
       priceStone1 = latestPrice - latestPrice * 0.68;
       await bot.sendMessage(
         chat_id,
