@@ -291,7 +291,7 @@ bot.on("message", (msg) => {
         );
         // const first25Percent = Math.round(totalBalance * 0.5);
         quantityBuy = Math.round(
-          (totalBalance * 0.25) / parseFloat(pairsPrice.data.price)
+          (totalBalance * 0.5) / parseFloat(pairsPrice.data.price)
         );
 
         binance
@@ -459,7 +459,7 @@ const handleTrading = async (close_price) => {
 
           if (isBuyDouble) {
             isBuyDouble = false;
-            const fullMoney = mileStone < 3 ? totalBalance * 0.25 : totalBalance * 0.48;
+            const fullMoney = totalBalance * 0.48;
             const quantityBuySecond = Math.round(fullMoney / latestPrice);
             await binance
               .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
@@ -510,11 +510,11 @@ const handleTrading = async (close_price) => {
 
     let priceSecondChange =
       mileStone > 1 &&
-      (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.2
+      (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.1
         ? true
         : false;
     let priceDefaultChange =
-      mileStone === 1 && percentChangeDefault >= 7.2 ? true : false;
+      mileStone === 1 && percentChangeDefault >= 7.1 ? true : false;
 
     if (
       latestPrice <= priceStone1 || latestPrice <= secondBuy.priceSold
@@ -549,10 +549,9 @@ const handleTrading = async (close_price) => {
           isBuyDouble = true;
           objTrading.specificTime = new Date().getUTCHours();
           objTrading.specificMin = new Date().getUTCMinutes();
-          mileStone = mileStone < 3 ? mileStone + 1 : 3
           await bot.sendMessage(
             chat_id,
-            `Complete Default, PriceStone: ${priceStone1}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
+            `Complete Default, PriceStone: ${priceStone1}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
           );
           await bot.sendMessage(
             chat_id,
