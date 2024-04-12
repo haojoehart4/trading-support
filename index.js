@@ -273,17 +273,10 @@ bot.on("message", (msg) => {
 
   //1
   if (msg.text.toString().toLowerCase().indexOf("invest new token") !== -1) {
-    bot.sendMessage(msg.chat.id, "How many percent of nav you want to invest ?");
+    bot.sendMessage(msg.chat.id, ` Please type new token pairs to invest`);
     // bot.sendMessage(msg.chat.id, "Please type new token pairs to invest");
   }
-
-  //2
-  if (
-    msg.text.toString().toLowerCase().indexOf("nav") !== -1
-  ) {
-    investPercent = parseFloat(msg.text.toString().split(":")[1].trim());
-    bot.sendMessage(msg.chat.id, `Invest percent: ${investPercent}, Please type new token pairs to invest`);
-  }  
+ 
 
   if (
     msg.text.toString().toLowerCase().indexOf("usdt") !== -1 &&
@@ -291,14 +284,14 @@ bot.on("message", (msg) => {
   ) {
     getTotalBalance(binance, "USDT")
       .then(async (res) => {
-        totalBalance = res * (investPercent / 100);
+        totalBalance = res;
         tokenPairs = msg.text.toString().split(":")[1].trim();
         const pairsPrice = await axios.get(
           `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
         );
         // const first25Percent = Math.round(totalBalance * 0.5);
         quantityBuy = Math.round(
-          totalBalance / parseFloat(pairsPrice.data.price)
+          (totalBalance * 0.25) / parseFloat(pairsPrice.data.price)
         );
 
         binance
@@ -466,8 +459,7 @@ const handleTrading = async (close_price) => {
 
           if (isBuyDouble) {
             isBuyDouble = false;
-            totalBalance = await getTotalBalance(binance, "USDT");
-            const fullMoney = Math.round(totalBalance);
+            const fullMoney = mileStone < 3 ? totalBalance * 0.25 : totalBalance * 0.48;
             const quantityBuySecond = Math.round(fullMoney / latestPrice);
             await binance
               .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
@@ -479,10 +471,9 @@ const handleTrading = async (close_price) => {
                   quantity: parseFloat(quantityBuySecond),
                   priceBought: parseFloat(res?.fills[0]?.price),
                 };
-                mileStone = 2;
                 bot.sendMessage(
                   chat_id,
-                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}, MILESTONE: ${mileStone}
+                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}
               VÀ THÔNG TIN MUA LẦN 2: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
                 );
               })
@@ -526,8 +517,7 @@ const handleTrading = async (close_price) => {
       mileStone === 1 && percentChangeDefault >= 7.2 ? true : false;
 
     if (
-      latestPrice <= priceStone1 ||
-      (mileStone === 2 && latestPrice <= secondBuy.priceSold)
+      latestPrice <= priceStone1 || latestPrice <= secondBuy.priceSold
     ) {
       const totalQty = Math.round(
         quantityBuy +
@@ -559,6 +549,7 @@ const handleTrading = async (close_price) => {
           isBuyDouble = true;
           objTrading.specificTime = new Date().getUTCHours();
           objTrading.specificMin = new Date().getUTCMinutes();
+          mileStone = mileStone < 3 ? mileStone + 1 : 3
           await bot.sendMessage(
             chat_id,
             `Complete Default, PriceStone: ${priceStone1}, mileStone: ${mileStone}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
@@ -574,35 +565,35 @@ const handleTrading = async (close_price) => {
             `Sold side, can not sell pairs - ${err?.body}`
           );
         });
-    } else if (mileStone === 2) {
-      // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
-      if (latestPrice <= secondBuy.priceSold) {
-        const quantity = Math.round(secondBuy.quantity * 0.2);
-        await binance
-          .marketSell(tokenPairs.toUpperCase(), quantity)
-          .then((res1) => {
-            objTrading.isCompleteDefault = true;
-            objTrading.specificTime = new Date().getUTCHours();
-            objTrading.specificMin = new Date().getUTCMinutes();
-            sessionDownTrend += 1;
-            bot.sendMessage(
-              chat_id,
-              `BÁN LƯỢNG TOKENS ĐÃ MUA Ở BƯỚC 2 VỚI GIÁ: ${res1?.fills[0]?.price}, SỐ LƯỢNG: ${totalQty}, MILESTONE = ${mileStone}`
-            );
-            secondBuy = {
-              priceSold: 0,
-              quantity: 0,
-              priceBought: 0,
-            };
-            mileStone = 1;
-          })
-          .catch((err) => {
-            bot.sendMessage(
-              chat_id,
-              `Sold side, can not sell pairs - ${err?.body}`
-            );
-          });
-      }
+    // } else if (mileStone === 2) {
+    //   // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
+    //   if (latestPrice <= secondBuy.priceSold) {
+    //     const quantity = Math.round(secondBuy.quantity * 0.2);
+    //     await binance
+    //       .marketSell(tokenPairs.toUpperCase(), quantity)
+    //       .then((res1) => {
+    //         objTrading.isCompleteDefault = true;
+    //         objTrading.specificTime = new Date().getUTCHours();
+    //         objTrading.specificMin = new Date().getUTCMinutes();
+    //         sessionDownTrend += 1;
+    //         bot.sendMessage(
+    //           chat_id,
+    //           `BÁN LƯỢNG TOKENS ĐÃ MUA Ở BƯỚC 2 VỚI GIÁ: ${res1?.fills[0]?.price}, SỐ LƯỢNG: ${totalQty}, MILESTONE = ${mileStone}`
+    //         );
+    //         secondBuy = {
+    //           priceSold: 0,
+    //           quantity: 0,
+    //           priceBought: 0,
+    //         };
+    //         mileStone = 1;
+    //       })
+    //       .catch((err) => {
+    //         bot.sendMessage(
+    //           chat_id,
+    //           `Sold side, can not sell pairs - ${err?.body}`
+    //         );
+    //       });
+    //   }
       // ------------------------//-----------------------//--------------------
     }
   } catch (err) {
