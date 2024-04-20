@@ -161,6 +161,7 @@ bot.onText(/\/start/, (msg) => {
             "Invest new token",
             "Find new token to invest",
             "Get balance information",
+            "Get price of related tokens"
           ],
         ],
       },
@@ -277,6 +278,39 @@ bot.on("message", (msg) => {
     // bot.sendMessage(msg.chat.id, "Please type new token pairs to invest");
   }
  
+  if (msg.text.toString().toLowerCase().indexOf("related") !== -1) {
+    const listPairs = [
+      "SHIBFDUSD",
+      "PEPEFDUSD",
+      "BONKFDUSD",
+      "FLOKIFDUSD",
+      "MEMEFDUSD",
+      "BOMEFDUSD"
+    ]
+
+    const listPairsStr = listPairs?.map((x) => {
+      return `%22${x}%22`;
+    });
+
+    let arrResponse = []
+    
+    axios.get(
+      `https://api.binance.com/api/v3/ticker/price?symbols=%5B${listPairsStr}%5D`
+    ).then(async(res) => {
+      await res?.data?.map((x) => {
+        const listTokensDef = [{name: 'SHIBFDUSD', price: 0.0000235}, {name: 'PEPEFDUSD', price: 0.0000052}, {name: 'BONKFDUSD', price: 0.00001512},
+        {name: 'FLOKIFDUSD', price: 0.000143}, {name: 'MEMEFDUSD', price: 0.026422}, {name: 'BOMEFDUSD', price: 0.010058}]
+        const defPrice = listTokensDef?.find((item) => item.name === x.symbol)?.price
+        const latestPrice = parseFloat(x?.price)
+        const percentChange = ((latestPrice - defPrice) / defPrice) * 100
+        arrResponse.push(`- Symbol: ${x?.symbol}, percentChange: ${percentChange}%`)
+      }) 
+      const responseStr = arrResponse?.join("\n")
+  
+      bot.sendMessage(chat_id, responseStr)
+    })
+
+  }
 
   if (
     msg.text.toString().toLowerCase().indexOf("usdt") !== -1 &&
