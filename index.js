@@ -124,29 +124,16 @@ bot.on("polling_error", (msg) => console.log(msg));
 // -------------------------- Binance Code Example ---------------
 // Subscribe to the Binance websocket stream for the market price of BTCUSDT
 let chat_id = 0;
-let investPercent = 0;
+let numberStone = 20;
 let mileStone = 1;
 let priceStone1 = 0;
-let tokenPairs = "btcusdt";
+let tokenPairs = [];
 let boughtPrice = 0;
 let interval = null;
-let sessionDownTrend = 0;
-let objTrading = {
-  allowBuy: false,
-  specificTime: 0,
-  specificMin: 0,
-  isCompleteDefault: false,
-  isCompleteInterval: false,
-};
 let priceStoneUpdated = 0;
 let totalBalance = 0;
 let quantityBuy = 0;
-let secondBuy = {
-  priceSold: 0,
-  quantity: 0,
-  priceBought: 0,
-};
-let isBuyDouble = false;
+let tokenDefault = {};
 
 bot.onText(/\/start/, (msg) => {
   chat_id = msg.chat.id;
@@ -161,7 +148,7 @@ bot.onText(/\/start/, (msg) => {
             "Invest new token",
             "Find new token to invest",
             "Get balance information",
-            "Get price of related tokens"
+            "Track price",
           ],
         ],
       },
@@ -186,21 +173,9 @@ const resetDefault = () => {
   boughtPrice = 0;
   chat_id = null;
   priceStoneUpdated = 0;
-  sessionDownTrend = 0;
-  investPercent = 0
-  objTrading = {
-    allowBuy: false,
-    specificTime: null,
-    specificMin: null,
-    isCompleteDefault: false,
-    isCompleteInterval: false,
-  };
-  secondBuy = {
-    priceSold: 0,
-    quantity: 0,
-    priceBought: 0,
-  };
-  isBuyDouble = false;
+  numberStone = 0;
+  tokenDefault = {};
+  tokenPairs = [];
 };
 
 const closeInterval = () => {
@@ -211,423 +186,93 @@ const closeInterval = () => {
 
 bot.on("message", (msg) => {
   if (msg.text.toString().toLowerCase().indexOf("balance") !== -1) {
-    try{
+    try {
       getTotalBalance(binance, "USDT").then((res) => {
-          bot.sendMessage(
-          msg.chat.id,
-          `Your balance in  formation here: ${res}`
-        );
-      })
-      // binance.balance((error, balances) => {
-      //   if (error) return console.error(error);
-      //   let balanceResult = [];
-      //   for (const x in balances) {
-      //     if (parseFloat(balances[x].available) > 0) {
-      //       balanceResult.push(`${x}: ${balances[x].available}`);
-      //     }
-      //   }
-      //   const responseToUser = balanceResult.join(", ");
-      //   bot.sendMessage(
-      //     msg.chat.id,
-      //     `Your balance in  formation here: ${responseToUser}`
-      //   );
-      // });
-    } catch(err) {
-      console.log(err)
+        bot.sendMessage(msg.chat.id, `Your balance in  formation here: ${res}`);
+      });
+    } catch (err) {
+      console.log(err);
     }
-
-
-    // axios
-    //   .get("https://api.binance.com/api/v3/time")
-    //   .then((resTime) => {
-    //     const timestamp = resTime.data.serverTime
-    //     const signature = crypto
-    //     .createHmac(
-    //       "sha256",
-    //       "bNEFxV63lDtM8mms1yNW2hdL84UYHQ4jjKlhFuWtjm4q1yg2NCP11Un9KhDDvWLk"
-    //     )
-    //     .update(`timestamp=${timestamp}`)
-    //     .digest("hex");
-
-    //     const params = {
-    //       timestamp,
-    //       signature,
-    //       recvWindow: 60000, // Optional, milliseconds
-    //     };
-
-    //     const headers = {
-    //       'X-MBX-APIKEY': 'VzhnAiTAbBE8hZYtVYrChohwAVWbB2XMqXbsUdZ2CmxdAxz44GkfNbF07DfRPn3i',
-    //   }
-    //     axios
-    //     .get("https://api.binance.com/api/v3/account", { params, headers })
-    //     .then((response) => {
-    //       console.log('haha', response.data); // Your account information
-    //     })
-    //     .catch((error) => {
-    //       console.error(error);
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
   }
 
   //1
-  if (msg.text.toString().toLowerCase().indexOf("invest new token") !== -1) {
-    bot.sendMessage(msg.chat.id, ` Please type new token pairs to invest`);
-    // bot.sendMessage(msg.chat.id, "Please type new token pairs to invest");
-  }
- 
-  if (msg.text.toString().toLowerCase().indexOf("related") !== -1) {
-    const listPairs = [
-      "SHIBFDUSD",
-      "PEPEFDUSD",
-      "BONKFDUSD",
-      "FLOKIFDUSD",
-      "MEMEFDUSD",
-      "BOMEFDUSD"
-    ]
-
-    const listPairsStr = listPairs?.map((x) => {
-      return `%22${x}%22`;
-    });
-
-    let arrResponse = []
-    
-    axios.get(
-      `https://api.binance.com/api/v3/ticker/price?symbols=%5B${listPairsStr}%5D`
-    ).then(async(res) => {
-      await res?.data?.map((x) => {
-        const listTokensDef = [{name: 'SHIBFDUSD', price: 0.0000235}, {name: 'PEPEFDUSD', price: 0.0000052}, {name: 'BONKFDUSD', price: 0.00001512},
-        {name: 'FLOKIFDUSD', price: 0.000143}, {name: 'MEMEFDUSD', price: 0.026422}, {name: 'BOMEFDUSD', price: 0.010058}]
-        const defPrice = listTokensDef?.find((item) => item.name === x.symbol)?.price
-        const latestPrice = parseFloat(x?.price)
-        const percentChange = ((latestPrice - defPrice) / defPrice) * 100
-        arrResponse.push(`- Symbol: ${x?.symbol}, percentChange: ${percentChange}%`)
-      }) 
-      const responseStr = arrResponse?.join("\n")
-  
-      bot.sendMessage(chat_id, responseStr)
-    })
-
+  if (msg.text.toString().toLowerCase().indexOf("track") !== -1) {
+    bot.sendMessage(msg.chat.id, `Please typing token`);
   }
 
-  if (
-    msg.text.toString().toLowerCase().indexOf("usdt") !== -1 &&
-    msg.text.toString().toLowerCase().indexOf("pair") !== -1
-  ) {
-    getTotalBalance(binance, "USDT")
-      .then(async (res) => {
-        totalBalance = res;
-        tokenPairs = msg.text.toString().split(":")[1].trim();
-        const pairsPrice = await axios.get(
-          `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
-        );
-        // const first25Percent = Math.round(totalBalance * 0.5);
-        quantityBuy = Math.round(
-          (totalBalance * 0.5) / parseFloat(pairsPrice.data.price)
-        );
-
-        binance
-          .marketBuy(tokenPairs.toUpperCase(), quantityBuy)
-          .then((res1) => {
-            const boughtPriceFloat = parseFloat(res1?.fills[0]?.price);
-            boughtPrice = parseFloat(boughtPriceFloat);
-            priceStoneUpdated = parseFloat(boughtPriceFloat);
-            priceStone1 =
-              parseFloat(boughtPriceFloat) -
-              parseFloat(boughtPriceFloat) * 0.068;
-            // priceStoneHalf =
-            //   parseFloat(boughtPriceFloat) - parseFloat(boughtPriceFloat) * 0.1;
-            bot.sendMessage(
-              chat_id,
-              `Buy at price=${res1?.fills[0]?.price} and quantity_response=${quantityBuy}, priceStone=${priceStone1}`
-            );
-            const connectAndListen = async () => {
-              try {
-                const result = await axios.get(
-                  `https://api.binance.com/api/v3/ticker/price?symbol=${tokenPairs.toUpperCase()}`
-                );
-                await handleTrading(parseFloat(result?.data?.price));
-              } catch (e) {
-                console.log(e?.response?.data?.message);
-              }
-            };
-            interval = setInterval(connectAndListen, 12000);
-          })
-          .catch((err) => {
-            bot.sendMessage(chat_id, `Can not buy this pairs - ${err?.body}`);
-          });
-      })
-      .catch((err) => {
-        bot.sendMessage(chat_id, `Can not get total balance - ${err?.body}`);
-      });
-  }
-
-  if (msg.text.toString().toLowerCase().indexOf("find new token") !== -1) {
+  if (msg.text.toString().toLowerCase().indexOf("token") !== -1) {
     try {
-      findNewTokenLongTerm(bot, chat_id, binance);
-    } catch (e) {
-      console.log(e.response);
-      bot.sendMessage(chat_id, "Stop found.");
-      return false;
-    }
-  }
+      const tokenGot = msg.text.toString().split(":")[1].trim();
+      const capitalizeLetter = tokenGot.toUpperCase();
 
-  if (msg.text.toString().toLowerCase().indexOf("sold second") !== -1) {
-    try {
-      const totalQty = Math.round(
-        secondBuy.quantity - secondBuy.quantity * 0.2
-      );
-      quantityBuy = secondBuy.quantity - totalQty;
-      binance
-        .marketSell(tokenPairs.toUpperCase(), totalQty)
+      axios
+        .get(
+          `https://api.binance.com/api/v3/ticker/price?symbol=${capitalizeLetter}`
+        )
         .then((res) => {
-          secondBuy = {
-            priceSold: 0,
-            quantity: 0,
-            priceBought: 0,
+          tokenDefault = {
+            symbol: res?.data?.symbol,
+            price: parseFloat(res?.data?.price),
+            priceStone:
+              parseFloat(res?.data?.price) -
+              parseFloat(res?.data?.price) * 0.2,
+            priceStoneUpdated: parseFloat(res?.data?.price)
           };
-          bot.sendMessage(
-            chat_id,
-            `Bán second_buy với giá: ${res.fills[0]?.price}, khối lượng: ${quantitySold}, mileStone=${mileStone}`
-          );
-        })
-        .catch((err) => {
-          bot.sendMessage(
-            chat_id,
-            `Sold side, can not sell pairs - ${err?.body}`
-          );
+          bot.sendMessage(msg.chat.id, `Please type quantity`);
         });
     } catch (e) {
       console.log(e.response);
       bot.sendMessage(chat_id, "Stop found.");
       return false;
     }
+  }
+
+  if (msg.text.toString().toLowerCase().indexOf("quantity") !== -1) {
+    const priceStr = msg.text.toString().split(":")[1].trim();
+    tokenDefault.quantity = Math.round(parseFloat(priceStr));
+    bot.sendMessage(
+      msg.chat.id,
+      `Symbol: ${tokenDefault.symbol}, price: ${tokenDefault.price}, priceStone: ${tokenDefault.priceStone}, quantity: ${tokenDefault.quantity}`
+    );
+    const connectAndListen = async () => {
+      try {
+        const result = await axios.get(
+          `https://api.binance.com/api/v3/ticker/price?symbol=${tokenDefault.symbol}`
+        );
+        await handleTrading(parseFloat(result.data.price));
+      } catch (e) {
+        console.log(e?.response?.data?.message);
+      }
+    };
+    interval = setInterval(connectAndListen, 10000);
   }
 });
 
-// binance.marketSell('ADAUSDT', 10 )
-// .then((res) => {
-//   console.log(res)
-// })
-// .catch((err) => {
-//   console.log(err)
-// })
-// getTotalBalance
-// getTotalBalance(binance, "USDT")
-//     .then(res => {
-//       console.log(res)
-//     })
-
-const handleTrading = async (close_price) => {
+const handleTrading = async (latestPrice) => {
   try {
-    const latestPrice = parseFloat(close_price);
-    const percentChange = (latestPrice / priceStoneUpdated - 1) * 100;
-    const exactSpecificTime = objTrading.specificTime % 4;
-    const exactUTCTime = new Date().getUTCHours() % 4;
-    if (new Date().getUTCMinutes() !== objTrading.specificMin) {
-      objTrading.allowBuy = false;
-      objTrading.isCompleteInterval = false;
-    } else if (
-      exactSpecificTime === exactUTCTime &&
-      new Date().getUTCMinutes() === objTrading.specificMin
-    ) {
-      objTrading.allowBuy = true;
-    }
-
-    //buy case
-    if (
-      objTrading.allowBuy &&
-      objTrading.isCompleteDefault &&
-      !objTrading.isCompleteInterval
-    ) {
-      const coupleFilterLatest = {
-        startTime: new Date().getTime() - 4 * 60 * 60 * 1000,
-        endTime: new Date().getTime(),
-      };
-
-      const rltLatest = await refetchGetVol({
-        ...coupleFilterLatest,
-        symbol: tokenPairs,
-      });
-
-      const coupleFilter8Hrs = {
-        startTime: new Date().getTime() - 8 * 60 * 60 * 1000,
-        endTime: new Date().getTime() - 4 * 60 * 60 * 1000,
-      };
-
-      const rlt8Hrs = await refetchGetVol({
-        ...coupleFilter8Hrs,
-        symbol: tokenPairs,
-      });
-
-      const percentChange =
-        (latestPrice - parseFloat(rltLatest.closePrice)) /
-        parseFloat(rltLatest.closePrice);
-
-      if (percentChange < 4) {
-        // IN CASE PERCENTCHANGE < 3
-        sessionDownTrend += 1;
-        objTrading.isCompleteInterval = true;
-        bot.sendMessage(
+    const percentChange = (latestPrice / tokenDefault.priceStoneUpdated - 1) * 100;
+    if (latestPrice <= tokenDefault.priceStone) {
+      const qtyPayload = Math.round(tokenDefault.quantity - tokenDefault.quantity * 0.2);
+      await binance
+        .marketSell(elm.symbol.toUpperCase(), qtyPayload)
+        .then((res) => {
+          closeInterval()
+          resetDefault()
+          bot.sendMessage(
+            chat_id,
+            `Bán token: ${latestPrice} với giá: ${res.fills[0]?.price}, khối lượng: ${qtyPayload}`
+          );
+        });
+    } else {
+      //-------------- CẬP NHẬT PRICESTONE VÀ MUA THÒNG --------------------//
+      if (percentChange > 2) {
+        tokenDefault.priceStone = latestPrice - latestPrice * 0.2;
+        await bot.sendMessage(
           chat_id,
-          `Downtrend - % THAY ĐỔI: ${percentChange}%, session_downtrend_count: ${sessionDownTrend}, GIÁ MỞ CỬA: ${rlt8Hrs.openPrice}, GIÁ ĐÓNG CỬA: ${rltLatest.closePrice}`
+          `Cập nhật pricestone - Symbol: ${tokenDefault.symbol}, price: ${tokenDefault.price}, priceStone: ${tokenDefault.priceStone}, quantity: ${tokenDefault.quantity}`
         );
-      } else {
-        // IN CASE PERCENTCHANGE >= 3
-        objTrading.isCompleteInterval = true;
-        const percentChangeVol =
-          ((rltLatest.totalVolume - rlt8Hrs.totalVolume) /
-            rltLatest.totalVolume) *
-          100;
-
-        const percentChangePrice =
-          ((rltLatest.closePrice - rlt8Hrs.closePrice) / rltLatest.closePrice) *
-          100;
-        if (
-          (sessionDownTrend >= 2 && percentChangePrice > 4) ||
-          (sessionDownTrend >= 2 && percentChangeVol > 70)
-        ) {
-          sessionDownTrend = 0;
-
-          if (isBuyDouble) {
-            isBuyDouble = false;
-            const fullMoney = totalBalance * 0.48;
-            const quantityBuySecond = Math.round(fullMoney / latestPrice);
-            await binance
-              .marketBuy(tokenPairs.toUpperCase(), quantityBuySecond)
-              .then((res) => {
-                secondBuy = {
-                  priceSold:
-                    parseFloat(res?.fills[0]?.price) -
-                    parseFloat(res?.fills[0]?.price) * 0.068,
-                  quantity: parseFloat(quantityBuySecond),
-                  priceBought: parseFloat(res?.fills[0]?.price),
-                };
-                bot.sendMessage(
-                  chat_id,
-                  `MUA LẦN 2 - 50%, VỚI GIÁ: ${res?.fills[0]?.price}, SỐ LƯỢNG: ${quantityBuySecond}, PRICESTONE: ${priceStone1}
-              VÀ THÔNG TIN MUA LẦN 2: (priceSold: ${secondBuy.priceSold}, quantity: ${secondBuy.quantity})`
-                );
-              })
-              .catch((err) => {
-                bot.sendMessage(
-                  chat_id,
-                  `Can not buy this 50% pairs at the second time - ${err?.message}`
-                );
-              });
-          } 
-        }
-        bot.sendMessage(
-          chat_id,
-          `Uptrend - % THAY ĐỔI: ${percentChange}%, session_downtrend_count: ${sessionDownTrend}, GIÁ MỞ CỬA: ${rlt8Hrs.openPrice}, GIÁ ĐÓNG CỬA: ${rltLatest.closePrice}`
-        );
+        tokenDefault.priceStoneUpdated = latestPrice;
       }
-    }
-
-    const percentChangeDefault =
-      ((latestPrice - boughtPrice) / boughtPrice) * 100;
-
-    //-------------- CẬP NHẬT PRICESTONE VÀ MUA THÒNG --------------------//
-    if (percentChange > 1) {
-      priceStone1 = latestPrice - latestPrice * 0.68;
-      await bot.sendMessage(
-        chat_id,
-        `Cập nhật pricestone: ${priceStone1}, latestPrice: ${latestPrice}, mileStone: ${mileStone}, secondBuy_priceSold: ${secondBuy.priceSold}`
-      );
-      priceStoneUpdated = latestPrice;
-    }
-    // ----------------------//------------------------//
-
-    //----------------------- KHI GIÁ MỚI NHẤT <= PRICESTONE => BÁN HẾT + NGHỈ CHƠI---------------------------//
-
-    let priceSecondChange =
-      mileStone > 1 &&
-      (latestPrice - secondBuy.priceBought) / secondBuy.priceBought >= 7.1
-        ? true
-        : false;
-    let priceDefaultChange =
-      mileStone === 1 && percentChangeDefault >= 7.1 ? true : false;
-
-    if (
-      latestPrice <= priceStone1 || latestPrice <= secondBuy.priceSold
-    ) {
-      const totalQty = Math.round(
-        quantityBuy +
-          secondBuy.quantity -
-          (quantityBuy + secondBuy.quantity) * 0.2
-      );
-      await binance
-        .marketSell(tokenPairs.toUpperCase(), totalQty)
-        .then(async (res1) => {
-          await bot.sendMessage(
-            chat_id,
-            `Sell all tokens with price ${res1?.fills[0]?.price}, quantity = ${totalQty}, mileStone = ${mileStone}`
-          );
-        })
-        .catch((err) => {
-          bot.sendMessage(
-            chat_id,
-            `Sold side, can not sell pairs - ${err?.body}`
-          );
-        });
-      resetDefault();
-      closeInterval();
-    } else if (priceSecondChange || priceDefaultChange) {
-      await binance
-        .marketSell(tokenPairs.toUpperCase(), totalQty)
-        .then(async (res1) => {
-          await resetDefault();
-          objTrading.isCompleteDefault = true;
-          isBuyDouble = true;
-          objTrading.specificTime = new Date().getUTCHours();
-          objTrading.specificMin = new Date().getUTCMinutes();
-          await bot.sendMessage(
-            chat_id,
-            `Complete Default, PriceStone: ${priceStone1}, specificMin: ${objTrading.specificMin}, specificTime: ${objTrading.specificTime}`
-          );
-          await bot.sendMessage(
-            chat_id,
-            `Sell all tokens with price ${res1?.fills[0]?.price}, quantity = ${totalQty}, mileStone = ${mileStone}`
-          );
-        })
-        .catch((err) => {
-          bot.sendMessage(
-            chat_id,
-            `Sold side, can not sell pairs - ${err?.body}`
-          );
-        });
-    // } else if (mileStone === 2) {
-    //   // -----------------KHI ĐANG Ở BƯỚC 2 MÀ GIÁ MỚI NHẤT <= GIÁ VỪA MUA THÊM ===> BÁN SỐ LƯỢNG VỪA MUA THÊM ===> GIẢM MILESTONE = 1-------------------//
-    //   if (latestPrice <= secondBuy.priceSold) {
-    //     const quantity = Math.round(secondBuy.quantity * 0.2);
-    //     await binance
-    //       .marketSell(tokenPairs.toUpperCase(), quantity)
-    //       .then((res1) => {
-    //         objTrading.isCompleteDefault = true;
-    //         objTrading.specificTime = new Date().getUTCHours();
-    //         objTrading.specificMin = new Date().getUTCMinutes();
-    //         sessionDownTrend += 1;
-    //         bot.sendMessage(
-    //           chat_id,
-    //           `BÁN LƯỢNG TOKENS ĐÃ MUA Ở BƯỚC 2 VỚI GIÁ: ${res1?.fills[0]?.price}, SỐ LƯỢNG: ${totalQty}, MILESTONE = ${mileStone}`
-    //         );
-    //         secondBuy = {
-    //           priceSold: 0,
-    //           quantity: 0,
-    //           priceBought: 0,
-    //         };
-    //         mileStone = 1;
-    //       })
-    //       .catch((err) => {
-    //         bot.sendMessage(
-    //           chat_id,
-    //           `Sold side, can not sell pairs - ${err?.body}`
-    //         );
-    //       });
-    //   }
-      // ------------------------//-----------------------//--------------------
     }
   } catch (err) {
     console.log("error_ne", err);
