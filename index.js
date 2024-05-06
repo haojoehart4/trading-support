@@ -269,7 +269,7 @@ const handleTrading = async (latestPrice) => {
         tokenDefault.priceStone = latestPrice - latestPrice * 0.15;
         await bot.sendMessage(
           chat_id,
-          `Cập nhật pricestone - Symbol: ${tokenDefault.symbol}, price: ${tokenDefault.price}, priceStone: ${tokenDefault.priceStone}, quantity: ${tokenDefault.quantity}`
+          `Cập nhật pricestone - Symbol: ${tokenDefault.symbol}, price: ${latestPrice}, priceStone: ${tokenDefault.priceStone}, quantity: ${tokenDefault.quantity}`
         );
         tokenDefault.priceStoneUpdated = latestPrice;
       }
