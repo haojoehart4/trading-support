@@ -215,7 +215,7 @@ bot.on("message", (msg) => {
             price: parseFloat(res?.data?.price),
             priceStone:
               parseFloat(res?.data?.price) -
-              parseFloat(res?.data?.price) * 0.2,
+              parseFloat(res?.data?.price) * 0.15,
             priceStoneUpdated: parseFloat(res?.data?.price)
           };
           bot.sendMessage(msg.chat.id, `Please type quantity`);
@@ -266,7 +266,7 @@ const handleTrading = async (latestPrice) => {
     } else {
       //-------------- CẬP NHẬT PRICESTONE VÀ MUA THÒNG --------------------//
       if (percentChange > 2) {
-        tokenDefault.priceStone = latestPrice - latestPrice * 0.2;
+        tokenDefault.priceStone = latestPrice - latestPrice * 0.15;
         await bot.sendMessage(
           chat_id,
           `Cập nhật pricestone - Symbol: ${tokenDefault.symbol}, price: ${tokenDefault.price}, priceStone: ${tokenDefault.priceStone}, quantity: ${tokenDefault.quantity}`
